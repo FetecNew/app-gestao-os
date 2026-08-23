@@ -47,10 +47,7 @@ export function validarFormulario(dados) {
     erros.push('Aparelho é obrigatório');
   }
   
-  if (!dados.defeito?.trim()) {
-    erros.push('Defeito é obrigatório');
-  }
-  
+   
   if (dados.valor_servico < 0) {
     erros.push('Valor de serviço não pode ser negativo');
   }
