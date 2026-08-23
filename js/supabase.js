@@ -13,6 +13,7 @@ export { supabase };
 
 // Testar conexão (abra o console do navegador com F12)
 supabase.from('ordens_servico')
-  .select('count(*)', { count: 'exact' })
+  .select('*', { count: 'exact' })
+  .limit(1)
   .then(res => console.log('✅ Supabase conectado! Total de OS:', res.count))
   .catch(err => console.error('❌ Erro conexão:', err));
