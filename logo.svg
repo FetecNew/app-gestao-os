@@ -1,45 +1,62 @@
-<svg width="180" height="40" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
   <defs>
     <style>
-      .logo-gear { fill: #00DC41; }
-      .logo-text { fill: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
-      .logo-circle { fill: none; stroke: #00DC41; stroke-width: 1.5; }
+      .fetec-gear-outer { fill: none; stroke: #00DC41; stroke-width: 1.5; }
+      .fetec-gear-tooth { fill: #00DC41; }
+      .fetec-gear-center { fill: #00DC41; }
+      .fetec-text { fill: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
+      .fetec-subtitle { fill: #00DC41; font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 0.5px; }
     </style>
   </defs>
   
-  <!-- Engrenagem (Gear) -->
-  <g transform="translate(12, 20)">
-    <!-- Círculo externo -->
-    <circle class="logo-circle" cx="0" cy="0" r="10.5"/>
+  <!-- ENGRENAGEM GRANDE E PROFISSIONAL -->
+  <g transform="translate(30, 30)">
+    <!-- Círculo externo da engrenagem -->
+    <circle class="fetec-gear-outer" cx="0" cy="0" r="14"/>
     
-    <!-- Dentes da engrenagem -->
-    <g class="logo-gear">
-      <!-- Dente superior -->
-      <rect x="-1.2" y="-13" width="2.4" height="3" rx="0.5"/>
-      <!-- Dente superior direita -->
-      <rect x="7" y="-9" width="3" height="2.4" rx="0.5" transform="rotate(45)"/>
-      <!-- Dente direita -->
-      <rect x="13" y="-1.2" width="3" height="2.4" rx="0.5"/>
-      <!-- Dente inferior direita -->
-      <rect x="9" y="7" width="2.4" height="3" rx="0.5" transform="rotate(45)"/>
-      <!-- Dente inferior -->
-      <rect x="-1.2" y="13" width="2.4" height="3" rx="0.5"/>
-      <!-- Dente inferior esquerda -->
-      <rect x="-11" y="7" width="3" height="2.4" rx="0.5" transform="rotate(-45)"/>
-      <!-- Dente esquerda -->
-      <rect x="-16" y="-1.2" width="3" height="2.4" rx="0.5"/>
-      <!-- Dente superior esquerda -->
-      <rect x="-9" y="-9" width="2.4" height="3" rx="0.5" transform="rotate(-45)"/>
+    <!-- 8 Dentes da engrenagem (maiores e mais bonitos) -->
+    <g class="fetec-gear-tooth">
+      <!-- Dente 1 (topo) -->
+      <polygon points="0,-18 2,-15 -2,-15"/>
+      
+      <!-- Dente 2 (topo direita) -->
+      <polygon points="12.7,-12.7 14.5,-10 12,-13.5"/>
+      
+      <!-- Dente 3 (direita) -->
+      <polygon points="18,0 15,2 15,-2"/>
+      
+      <!-- Dente 4 (direita baixo) -->
+      <polygon points="12.7,12.7 13.5,12 10,14.5"/>
+      
+      <!-- Dente 5 (baixo) -->
+      <polygon points="0,18 2,15 -2,15"/>
+      
+      <!-- Dente 6 (esquerda baixo) -->
+      <polygon points="-12.7,12.7 -13.5,12 -10,14.5"/>
+      
+      <!-- Dente 7 (esquerda) -->
+      <polygon points="-18,0 -15,2 -15,-2"/>
+      
+      <!-- Dente 8 (esquerda topo) -->
+      <polygon points="-12.7,-12.7 -14.5,-10 -12,-13.5"/>
     </g>
     
-    <!-- Centro da engrenagem -->
-    <circle cx="0" cy="0" r="4" class="logo-gear"/>
+    <!-- Círculo do meio -->
+    <circle cx="0" cy="0" r="8.5" class="fetec-gear-outer" stroke-width="1"/>
+    
+    <!-- Centro sólido -->
+    <circle cx="0" cy="0" r="5" class="fetec-gear-center"/>
+    
+    <!-- Destaque no centro -->
     <circle cx="0" cy="0" r="2.5" fill="#0A0A0A"/>
   </g>
   
-  <!-- Texto FETEC -->
-  <text x="52" y="26" class="logo-text">FETEC</text>
+  <!-- TEXTO FETEC -->
+  <text x="70" y="38" class="fetec-text">FETEC</text>
   
-  <!-- Linha decorativa -->
-  <line x1="50" y1="29" x2="170" y2="29" stroke="#00DC41" stroke-width="1" opacity="0.3"/>
+  <!-- LINHA DECORATIVA -->
+  <line x1="65" y1="45" x2="155" y2="45" stroke="#00DC41" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- SUBTITLE (PEQUENO) -->
+  <text x="70" y="53" class="fetec-subtitle">ASSISTÊNCIA TÉCNICA</text>
 </svg>
