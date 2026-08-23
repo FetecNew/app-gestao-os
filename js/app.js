@@ -1,6 +1,6 @@
 // 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
 
-import { supabase } from './supabase.js';
+import supabase from './supabase.js';
 import { 
   formatarData, 
   formatarMoeda, 
