@@ -1,0 +1,45 @@
+<svg width="180" height="40" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .logo-gear { fill: #00DC41; }
+      .logo-text { fill: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+      .logo-circle { fill: none; stroke: #00DC41; stroke-width: 1.5; }
+    </style>
+  </defs>
+  
+  <!-- Engrenagem (Gear) -->
+  <g transform="translate(12, 20)">
+    <!-- Círculo externo -->
+    <circle class="logo-circle" cx="0" cy="0" r="10.5"/>
+    
+    <!-- Dentes da engrenagem -->
+    <g class="logo-gear">
+      <!-- Dente superior -->
+      <rect x="-1.2" y="-13" width="2.4" height="3" rx="0.5"/>
+      <!-- Dente superior direita -->
+      <rect x="7" y="-9" width="3" height="2.4" rx="0.5" transform="rotate(45)"/>
+      <!-- Dente direita -->
+      <rect x="13" y="-1.2" width="3" height="2.4" rx="0.5"/>
+      <!-- Dente inferior direita -->
+      <rect x="9" y="7" width="2.4" height="3" rx="0.5" transform="rotate(45)"/>
+      <!-- Dente inferior -->
+      <rect x="-1.2" y="13" width="2.4" height="3" rx="0.5"/>
+      <!-- Dente inferior esquerda -->
+      <rect x="-11" y="7" width="3" height="2.4" rx="0.5" transform="rotate(-45)"/>
+      <!-- Dente esquerda -->
+      <rect x="-16" y="-1.2" width="3" height="2.4" rx="0.5"/>
+      <!-- Dente superior esquerda -->
+      <rect x="-9" y="-9" width="2.4" height="3" rx="0.5" transform="rotate(-45)"/>
+    </g>
+    
+    <!-- Centro da engrenagem -->
+    <circle cx="0" cy="0" r="4" class="logo-gear"/>
+    <circle cx="0" cy="0" r="2.5" fill="#0A0A0A"/>
+  </g>
+  
+  <!-- Texto FETEC -->
+  <text x="52" y="26" class="logo-text">FETEC</text>
+  
+  <!-- Linha decorativa -->
+  <line x1="50" y1="29" x2="170" y2="29" stroke="#00DC41" stroke-width="1" opacity="0.3"/>
+</svg>
