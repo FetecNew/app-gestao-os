@@ -1,4 +1,4 @@
-// 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
+// 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS
 
 import { supabase } from './supabase.js';
 import { 
@@ -12,35 +12,12 @@ import {
 // ========== VARIÁVEIS GLOBAIS ==========
 let lista_os = [];
 let indice_edicao = -1;
-let tecnico_padrao = null;
 
 // ========== INICIALIZAÇÃO ==========
 async function inicializar() {
-  console.log('🚀 Iniciando aplicação v2...');
+  console.log('🚀 Iniciando aplicação...');
   await carregarOS();
-  await carregarTecnicoPadrao();
   renderizar();
-}
-
-// ========== CARREGAR TÉCNICO PADRÃO ==========
-async function carregarTecnicoPadrao() {
-  try {
-    const { data, error } = await supabase
-      .from('tecnico_padrao')
-      .select('*')
-      .eq('eh_padrao', true)
-      .limit(1);
-    
-    if (error) {
-      console.error('❌ Erro ao carregar técnico:', error);
-      return;
-    }
-    
-    tecnico_padrao = data && data.length > 0 ? data[0] : null;
-    console.log('✅ Técnico padrão carregado:', tecnico_padrao?.nome_tecnico);
-  } catch (err) {
-    console.error('❌ Erro:', err);
-  }
 }
 
 // ========== CARREGAR DADOS DO SUPABASE ==========
@@ -74,7 +51,8 @@ async function salvarOS() {
   // Validar dados
   const dados = {
     cliente: document.getElementById('fCliente').value.trim(),
-    aparelho: document.getElementById('fAparelho').value.trim()
+    aparelho: document.getElementById('fAparelho').value.trim(),
+    defeito: document.getElementById('fDefeito').value.trim()
   };
   
   const erro = validarFormulario(dados);
@@ -89,16 +67,19 @@ async function salvarOS() {
     data_abertura: document.getElementById('fData').value,
     cliente: document.getElementById('fCliente').value.trim(),
     telefone: document.getElementById('fTelefone').value.trim(),
+    whatsapp: document.getElementById('fWhatsapp').value.trim(),
     endereco: document.getElementById('fEndereco').value.trim(),
     complemento: document.getElementById('fComplemento').value.trim(),
     cep: document.getElementById('fCEP').value.trim(),
     aparelho: document.getElementById('fAparelho').value.trim(),
     marca: document.getElementById('fMarca').value.trim(),
+    modelo: document.getElementById('fModelo').value.trim(),
+    defeito: document.getElementById('fDefeito').value.trim(),
+    tecnico: document.getElementById('fTecnico').value.trim(),
     valor_servico: parseFloat(document.getElementById('fVS').value) || 0,
     valor_pecas: parseFloat(document.getElementById('fVP').value) || 0,
-    periodo_visita: document.getElementById('fPeriodo').value || 'Manhã',
-    campanha: document.getElementById('fCampanha').value || null,
     status: document.getElementById('fStatus').value,
+    data_conclusao: document.getElementById('fDC').value || null,
     observacoes: document.getElementById('fObs').value.trim()
   };
   
@@ -171,7 +152,6 @@ function verOS(id) {
   document.querySelector('.form-actions').innerHTML = 
     '<button type="button" class="btn btn-warning" onclick="editarOS('+os.id+')">✏️ Editar</button>' +
     '<button type="button" class="btn btn-success" onclick="imprimirOS('+os.id+')">🖨️ Imprimir</button>' +
-    '<button type="button" class="btn btn-primary" onclick="exportarWhatsApp('+os.id+')">📱 WhatsApp</button>' +
     '<button type="button" class="btn btn-danger" onclick="fecharModal()">Fechar</button>';
   
   document.getElementById('modalFundo').classList.add('active');
@@ -207,16 +187,19 @@ function preencherForm(os) {
   document.getElementById('fData').value = os.data_abertura || '';
   document.getElementById('fCliente').value = os.cliente || '';
   document.getElementById('fTelefone').value = os.telefone || '';
+  document.getElementById('fWhatsapp').value = os.whatsapp || '';
   document.getElementById('fEndereco').value = os.endereco || '';
   document.getElementById('fComplemento').value = os.complemento || '';
   document.getElementById('fCEP').value = os.cep || '';
   document.getElementById('fAparelho').value = os.aparelho || '';
   document.getElementById('fMarca').value = os.marca || '';
+  document.getElementById('fModelo').value = os.modelo || '';
+  document.getElementById('fDefeito').value = os.defeito || '';
+  document.getElementById('fTecnico').value = os.tecnico || '';
   document.getElementById('fVS').value = os.valor_servico || 0;
   document.getElementById('fVP').value = os.valor_pecas || 0;
-  document.getElementById('fPeriodo').value = os.periodo_visita || 'Manhã';
-  document.getElementById('fCampanha').value = os.campanha || '';
-  document.getElementById('fStatus').value = os.status || 'Visita';
+  document.getElementById('fStatus').value = os.status || 'Aberto';
+  document.getElementById('fDC').value = os.data_conclusao || '';
   document.getElementById('fObs').value = os.observacoes || '';
 }
 
@@ -254,7 +237,7 @@ function renderizar() {
   tbody.innerHTML = '';
   
   if (filtrados.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #999;">Nenhuma OS encontrada</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">Nenhuma OS encontrada</td></tr>';
     return;
   }
   
@@ -263,17 +246,13 @@ function renderizar() {
     const tr = document.createElement('tr');
     const statusClass = `status-${os.status.toLowerCase().replace(' ', '')}`;
     
-    // Definir ícone do período
-    const iconePeriodo = os.periodo_visita === 'Manhã' ? '🌅' : '🌤️';
-    
     tr.innerHTML = `
       <td>${os.numero_os}</td>
       <td>${formatarData(os.data_abertura)}</td>
       <td>${os.cliente}</td>
-      <td>${os.aparelho}${os.marca ? ' (' + os.marca + ')' : ''}</td>
+      <td>${os.aparelho}</td>
+      <td>${os.tecnico || '-'}</td>
       <td>${formatarMoeda(os.valor_servico + os.valor_pecas)}</td>
-      <td>${iconePeriodo} ${os.periodo_visita || '-'}</td>
-      <td>${os.campanha ? 'Camp. ' + os.campanha : '-'}</td>
       <td><span class="status-badge ${statusClass}">${os.status}</span></td>
       <td style="display: flex; gap: 5px;">
         <button class="btn btn-sm btn-primary" onclick="verOS(${os.id})" title="Ver">👁️</button>
@@ -288,17 +267,17 @@ function renderizar() {
 // ========== ATUALIZAR ESTATÍSTICAS ==========
 function atualizarEstatisticas() {
   const total = lista_os.length;
-  const visita = lista_os.filter(o => o.status === 'Visita').length;
-  const garantia = lista_os.filter(o => o.status === 'Garantia').length;
-  const aprovada = lista_os.filter(o => o.status === 'Aprovada').length;
-  const desistencia = lista_os.filter(o => o.status === 'Desistência').length;
+  const abertas = lista_os.filter(o => o.status === 'Aberto').length;
+  const andamento = lista_os.filter(o => o.status === 'Em Andamento').length;
+  const finalizadas = lista_os.filter(o => o.status === 'Finalizado').length;
+  const entregues = lista_os.filter(o => o.status === 'Entregue').length;
   const faturamento = lista_os.reduce((sum, o) => sum + (o.valor_servico + o.valor_pecas || 0), 0);
   
   document.getElementById('sTotal').textContent = total;
-  document.getElementById('sVisita').textContent = visita;
-  document.getElementById('sGarantia').textContent = garantia;
-  document.getElementById('sAprovada').textContent = aprovada;
-  document.getElementById('sDesistencia').textContent = desistencia;
+  document.getElementById('sAbertas').textContent = abertas;
+  document.getElementById('sAndamento').textContent = andamento;
+  document.getElementById('sFinalizadas').textContent = finalizadas;
+  document.getElementById('sEntregues').textContent = entregues;
   document.getElementById('sFaturamento').textContent = formatarMoeda(faturamento);
 }
 
@@ -308,7 +287,6 @@ function abrirNovaOS() {
   document.getElementById('indiceEdicao').value = '-1';
   document.getElementById('fNumeroOS').value = gerarNumeroOS();
   document.getElementById('fData').value = new Date().toISOString().split('T')[0];
-  document.getElementById('fPeriodo').value = 'Manhã';
   limparFormulario();
   habilitarEdicao(true);
   
@@ -328,8 +306,6 @@ function limparFormulario() {
   document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(el => {
     el.value = '';
   });
-  document.getElementById('fPeriodo').value = 'Manhã';
-  document.getElementById('fStatus').value = 'Visita';
 }
 
 // ========== IMPRIMIR OS ==========
@@ -346,7 +322,6 @@ function imprimirOS(id) {
   var end = os.endereco ? '<p><strong>Endereço:</strong> ' + os.endereco + '</p>' : '';
   var comp = os.complemento ? '<p><strong>Complemento:</strong> ' + os.complemento + '</p>' : '';
   var cep = os.cep ? '<p><strong>CEP:</strong> ' + os.cep + '</p>' : '';
-  var marca = os.marca ? ' (' + os.marca + ')' : '';
   
   var h='<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OS #'+os.numero_os+'</title>';
   h+='<style>body{font-family:Segoe UI,sans-serif;padding:20px;color:#222}h1{text-align:center;color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:12px;font-size:1.4em}.info{margin:16px 0}.info p{margin:6px 0}.footer{text-align:center;color:#999;font-size:.8em;border-top:1px solid #ddd;padding-top:12px;margin-top:24px}@media print{button{display:none}}</style></head><body>';
@@ -354,11 +329,13 @@ function imprimirOS(id) {
   h+='<p><strong>Cliente:</strong> '+(os.cliente||'-')+'</p>';
   h+='<p><strong>Telefone:</strong> '+(os.telefone||'-')+'</p>';
   h+=end+comp+cep;
-  h+='<p><strong>Aparelho:</strong> '+(os.aparelho||'-')+marca+'</p>';
+  var ap=os.aparelho||'-';if(os.marca)ap+=' ('+os.marca+')';if(os.modelo)ap+=' '+os.modelo;
+  h+='<p><strong>Aparelho:</strong> '+ap+'</p>';
+  h+='<p><strong>Defeito:</strong> '+(os.defeito||'-')+'</p>';
+  h+='<p><strong>Técnico:</strong> '+(os.tecnico||'-')+'</p>';
   h+='<p><strong>Status:</strong> '+os.status+'</p>';
   h+='<p><strong>Abertura:</strong> '+formatarData(os.data_abertura)+'</p>';
-  if(os.periodo_visita)h+='<p><strong>Período da Visita:</strong> '+os.periodo_visita+'</p>';
-  if(os.campanha)h+='<p><strong>Campanha:</strong> '+os.campanha+'</p>';
+  if(os.data_conclusao)h+='<p><strong>Conclusão:</strong> '+formatarData(os.data_conclusao)+'</p>';
   h+='</div>';
   if(os.observacoes)h+='<hr><p><strong>Obs:</strong> '+os.observacoes+'</p>';
   h+='<div class="footer"><p>Gerado em '+new Date().toLocaleString('pt-BR')+'</p></div>';
@@ -369,85 +346,8 @@ function imprimirOS(id) {
   w.document.close();
 }
 
-// ========== EXPORTAR PARA WHATSAPP ==========
-async function exportarWhatsApp(id) {
-  var lista = lista_os, os = null;
-  for (var i = 0; i < lista.length; i++) { 
-    if (lista[i].id === id) { 
-      os = lista[i]; 
-      break; 
-    } 
-  }
-  if (!os) return;
-  
-  // Mostrar modal para editar técnico
-  const nomeTecnico = tecnico_padrao?.nome_tecnico || '';
-  const telefoneTecnico = tecnico_padrao?.telefone_tecnico || '';
-  
-  const nomeInput = prompt('Nome do Técnico:', nomeTecnico);
-  if (nomeInput === null) return; // Cancelado
-  
-  const telefoneInput = prompt('Telefone do Técnico (ex: 11999999999):', telefoneTecnico);
-  if (telefoneInput === null) return; // Cancelado
-  
-  // Salvar como padrão
-  const ehPadrao = confirm('Usar este técnico como padrão para futuras exportações?');
-  
-  if (ehPadrao) {
-    await salvarTecnicoPadrao(nomeInput, telefoneInput);
-  }
-  
-  // Montar mensagem WhatsApp
-  const mensagem = `OS #${os.numero_os} - ${os.status}
-
-Cliente: ${os.cliente}
-Telefone: ${os.telefone || 'N/A'}
-Aparelho: ${os.aparelho}${os.marca ? ' (' + os.marca + ')' : ''}
-Endereço: ${os.endereco || 'N/A'}
-${os.complemento ? 'Complemento: ' + os.complemento + '\n' : ''}CEP: ${os.cep || 'N/A'}
-Período: ${os.periodo_visita || 'N/A'}
-${os.campanha ? 'Campanha: ' + os.campanha + '\n' : ''}Valor: ${formatarMoeda(os.valor_servico + os.valor_pecas)}
-${os.observacoes ? '\nObservações: ' + os.observacoes : ''}
-
-Técnico: ${nomeInput}
-Telefone Técnico: ${telefoneInput}`;
-  
-  // Abrir WhatsApp Web
-  const mensagemCodificada = encodeURIComponent(mensagem);
-  const url = `https://web.whatsapp.com/send?text=${mensagemCodificada}`;
-  
-  window.open(url, '_blank');
-  exibirToast('✅ Abrindo WhatsApp...');
-}
-
-// ========== SALVAR TÉCNICO PADRÃO ==========
-async function salvarTecnicoPadrao(nome, telefone) {
-  try {
-    // Se já existe um padrão, delete primeiro
-    if (tecnico_padrao) {
-      await supabase
-        .from('tecnico_padrao')
-        .delete()
-        .eq('id', tecnico_padrao.id);
-    }
-    
-    // Inserir novo
-    const { data, error } = await supabase
-      .from('tecnico_padrao')
-      .insert([{
-        nome_tecnico: nome,
-        telefone_tecnico: telefone,
-        eh_padrao: true
-      }]);
-    
-    if (error) throw error;
-    
-    tecnico_padrao = data[0];
-    console.log('✅ Técnico padrão salvo:', nome);
-  } catch (err) {
-    console.error('❌ Erro ao salvar técnico:', err);
-  }
-}
+// ========== INICIALIZAR NA PÁGINA ==========
+document.addEventListener('DOMContentLoaded', inicializar);
 
 // ========== EXPORTAR PARA CSV ==========
 function exportarCSV() {
@@ -460,11 +360,11 @@ function exportarCSV() {
     }
     
     // Cabeçalho
-    const cabecalho = 'ID,Número,Data,Cliente,Aparelho,Período,Campanha,Status,Valor Total\n';
+    const cabecalho = 'ID,Número,Data,Cliente,Aparelho,Status,Valor Total\n';
     
     // Linhas
     const linhas = os_list.map(os =>
-      `${os.id},${os.numero_os},${os.data_abertura},${os.cliente},${os.aparelho},${os.periodo_visita},${os.campanha || '-'},${os.status},${os.valor_servico + os.valor_pecas}`
+      `${os.id},${os.numero_os},${os.data_abertura},${os.cliente},${os.aparelho},${os.status},${os.valor_servico + os.valor_pecas}`
     ).join('\n');
     
     // Criar blob
@@ -485,8 +385,7 @@ function exportarCSV() {
   }
 }
 
-// ========== INICIALIZAR NA PÁGINA ==========
-document.addEventListener('DOMContentLoaded', inicializar);
+window.exportarCSV = exportarCSV;
 
 // Exportar funções para uso no HTML
 window.salvarOS = salvarOS;
@@ -497,7 +396,5 @@ window.fecharModal = fecharModal;
 window.verOS = verOS;
 window.editarOS = editarOS;
 window.imprimirOS = imprimirOS;
-window.exportarCSV = exportarCSV;
-window.exportarWhatsApp = exportarWhatsApp;
 window.formatarMoeda = formatarMoeda;
 window.formatarData = formatarData;

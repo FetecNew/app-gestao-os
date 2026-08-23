@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/styles.css">
   
   <!-- FAVICON -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300DC41'/><text x='50' y='65' font-size='60' font-weight='bold' fill='%230A0A0A'>⚙</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300DC41'/><text x='50' y='65' font-size='60' font-weight='bold' fill='%230A0A0A' text-anchor='middle'>⚙</text></svg>">
 </head>
 <body>
   <div class="container">
@@ -17,11 +17,13 @@
     <!-- ========== HEADER ========== -->
     <div class="header">
       <div>
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-          <img src="logo-fetec-v2.svg" alt="FETEC Logo" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));">
+        
+         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+          <img src="logo.svg" alt="FETEC Logo" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));">
         </div>
+
         <h1>Gestão de OS</h1>
-        <span>Assistência Técnica de Linha Branca - São José dos Campos</span>
+        <span>São José dos Campos</span>
       </div>
       <div class="header-actions">
         <button class="btn btn-outline" onclick="exportarCSV()" title="Exportar dados em CSV">📊 Exportar</button>
@@ -36,20 +38,20 @@
         <div class="number" id="sTotal">0</div>
       </div>
       <div class="stat-card orange">
-        <div class="label">Visita</div>
-        <div class="number" id="sVisita">0</div>
+        <div class="label">Abertas</div>
+        <div class="number" id="sAbertas">0</div>
       </div>
       <div class="stat-card blue">
-        <div class="label">Garantia</div>
-        <div class="number" id="sGarantia">0</div>
+        <div class="label">Em Andamento</div>
+        <div class="number" id="sAndamento">0</div>
       </div>
       <div class="stat-card green">
-        <div class="label">Aprovada</div>
-        <div class="number" id="sAprovada">0</div>
+        <div class="label">Finalizadas</div>
+        <div class="number" id="sFinalizadas">0</div>
       </div>
       <div class="stat-card purple">
-        <div class="label">Desistência</div>
-        <div class="number" id="sDesistencia">0</div>
+        <div class="label">Entregues</div>
+        <div class="number" id="sEntregues">0</div>
       </div>
       <div class="stat-card teal">
         <div class="label">Faturamento</div>
@@ -65,10 +67,10 @@
           <input type="search" id="busca" placeholder="Buscar cliente, OS, aparelho..." onkeyup="renderizar()">
           <select id="filtroStatus" onchange="renderizar()">
             <option value="">Todos</option>
-            <option value="Visita">Visita</option>
-            <option value="Garantia">Garantia</option>
-            <option value="Aprovada">Aprovada</option>
-            <option value="Desistência">Desistência</option>
+            <option value="Aberto">Aberto</option>
+            <option value="Em Andamento">Em Andamento</option>
+            <option value="Finalizado">Finalizado</option>
+            <option value="Entregue">Entregue</option>
           </select>
         </div>
       </div>
@@ -81,9 +83,8 @@
                 <th>Data</th>
                 <th>Cliente</th>
                 <th>Aparelho</th>
+                <th>Técnico</th>
                 <th>Valor</th>
-                <th>Período</th>
-                <th>Campanha</th>
                 <th>Status</th>
                 <th>Ações</th>
               </tr>
@@ -128,15 +129,31 @@
           
           <!-- Linha 3 -->
           <div class="form-group">
+            <label>💬 WhatsApp</label>
+            <input type="tel" id="fWhatsapp" placeholder="(00) 99999-9999">
+          </div>
+          <div class="form-group">
             <label>🔧 Aparelho *</label>
             <input type="text" id="fAparelho" required placeholder="Ex: Geladeira">
           </div>
+          
+          <!-- Linha 4 -->
           <div class="form-group">
             <label>🏷️ Marca</label>
             <input type="text" id="fMarca" placeholder="Ex: Brastemp">
           </div>
+          <div class="form-group">
+            <label>📦 Modelo</label>
+            <input type="text" id="fModelo" placeholder="Ex: BRE80">
+          </div>
           
-          <!-- Linha 4 -->
+          <!-- Linha 5 - Full Width -->
+          <div class="form-group full-width">
+            <label>⚠️ Defeito *</label>
+            <textarea id="fDefeito" required placeholder="Descreva o defeito apresentado"></textarea>
+          </div>
+          
+          <!-- Linha 6 -->
           <div class="form-group">
             <label>🏠 Endereço</label>
             <input type="text" id="fEndereco" placeholder="Rua, número">
@@ -146,21 +163,17 @@
             <input type="text" id="fComplemento" placeholder="Apto, sala, etc">
           </div>
           
-          <!-- Linha 5 -->
+          <!-- Linha 7 -->
           <div class="form-group">
             <label>📮 CEP</label>
             <input type="text" id="fCEP" placeholder="00000-000">
           </div>
           <div class="form-group">
-            <label>⏰ Período da Visita</label>
-            <select id="fPeriodo">
-              <option value="">Selecione...</option>
-              <option value="Manhã">🌅 Manhã (09:00-12:00)</option>
-              <option value="Tarde">🌤️ Tarde (13:00-17:00)</option>
-            </select>
+            <label>👨‍🔧 Técnico</label>
+            <input type="text" id="fTecnico" placeholder="Nome do técnico">
           </div>
           
-          <!-- Linha 6 -->
+          <!-- Linha 8 -->
           <div class="form-group">
             <label>💵 Valor Serviço (R$)</label>
             <input type="number" id="fVS" min="0" step="0.01" value="0">
@@ -170,26 +183,22 @@
             <input type="number" id="fVP" min="0" step="0.01" value="0">
           </div>
           
-          <!-- Linha 7 -->
-          <div class="form-group">
-            <label>📢 Campanha</label>
-            <select id="fCampanha">
-              <option value="">Selecione...</option>
-              <option value="01">Campanha 01</option>
-              <option value="02">Campanha 02</option>
-            </select>
-          </div>
+          <!-- Linha 9 -->
           <div class="form-group">
             <label>🎯 Status</label>
             <select id="fStatus">
-              <option value="Visita">🟠 Visita</option>
-              <option value="Garantia">🔄 Garantia</option>
-              <option value="Aprovada">✅ Aprovada</option>
-              <option value="Desistência">❌ Desistência</option>
+              <option value="Aberto">🟠 Aberto</option>
+              <option value="Em Andamento">🟢 Em Andamento</option>
+              <option value="Finalizado">✅ Finalizado</option>
+              <option value="Entregue">📦 Entregue</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>🏁 Data Conclusão</label>
+            <input type="date" id="fDC">
+          </div>
           
-          <!-- Linha 8 - Full Width -->
+          <!-- Linha 10 - Full Width -->
           <div class="form-group full-width">
             <label>📌 Observações</label>
             <textarea id="fObs" placeholder="Notas adicionais, recomendações, etc"></textarea>
