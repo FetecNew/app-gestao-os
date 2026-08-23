@@ -1,10 +1,12 @@
-  // ⚙️ CONFIGURAÇÃO SUPABASE COM AUTENTICAÇÃO ANÔNIMA
+// ⚙️ CONFIGURAÇÃO SUPABASE v2 - COM AUTENTICAÇÃO ANÔNIMA
 
 const SUPABASE_URL = 'https://gtnbmhibdahcihoiuxwf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bmJtaGliZGFoY2lob2l1eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI0ODA2NjcsImV4cCI6MTk3ODA1NjY2N30.B_KzFrLd8Z_8xK1d-F1ZzJWnJMXX-xJwXKh6H-YY7qE';
 
-// Criar cliente Supabase
+// ========== CRIAR CLIENTE SUPABASE ==========
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+console.log('✅ Cliente Supabase inicializado');
 
 // ========== INICIALIZAR AUTENTICAÇÃO ANÔNIMA ==========
 export async function inicializarAuth() {
@@ -20,7 +22,7 @@ export async function inicializarAuth() {
       
       if (error) {
         console.error('❌ Erro no login anônimo:', error);
-        // Continuar mesmo sem autenticação (modo guest)
+        console.log('⚠️ Continuando em modo guest...');
         return null;
       }
       
@@ -47,5 +49,5 @@ export async function obterUsuarioAtual() {
   }
 }
 
-// ========== EXPORTAR PARA OUTROS MÓDULOS ==========
+// ========== EXPORTAR CLIENTE SUPABASE COMO DEFAULT ==========
 export default supabase;
