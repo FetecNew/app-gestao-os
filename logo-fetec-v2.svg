@@ -1,0 +1,62 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .fetec-gear-outer { fill: none; stroke: #00DC41; stroke-width: 1.5; }
+      .fetec-gear-tooth { fill: #00DC41; }
+      .fetec-gear-center { fill: #00DC41; }
+      .fetec-text { fill: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
+      .fetec-subtitle { fill: #00DC41; font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 0.5px; }
+    </style>
+  </defs>
+  
+  <!-- ENGRENAGEM GRANDE E PROFISSIONAL -->
+  <g transform="translate(30, 30)">
+    <!-- Círculo externo da engrenagem -->
+    <circle class="fetec-gear-outer" cx="0" cy="0" r="14"/>
+    
+    <!-- 8 Dentes da engrenagem (maiores e mais bonitos) -->
+    <g class="fetec-gear-tooth">
+      <!-- Dente 1 (topo) -->
+      <polygon points="0,-18 2,-15 -2,-15"/>
+      
+      <!-- Dente 2 (topo direita) -->
+      <polygon points="12.7,-12.7 14.5,-10 12,-13.5"/>
+      
+      <!-- Dente 3 (direita) -->
+      <polygon points="18,0 15,2 15,-2"/>
+      
+      <!-- Dente 4 (direita baixo) -->
+      <polygon points="12.7,12.7 13.5,12 10,14.5"/>
+      
+      <!-- Dente 5 (baixo) -->
+      <polygon points="0,18 2,15 -2,15"/>
+      
+      <!-- Dente 6 (esquerda baixo) -->
+      <polygon points="-12.7,12.7 -13.5,12 -10,14.5"/>
+      
+      <!-- Dente 7 (esquerda) -->
+      <polygon points="-18,0 -15,2 -15,-2"/>
+      
+      <!-- Dente 8 (esquerda topo) -->
+      <polygon points="-12.7,-12.7 -14.5,-10 -12,-13.5"/>
+    </g>
+    
+    <!-- Círculo do meio -->
+    <circle cx="0" cy="0" r="8.5" class="fetec-gear-outer" stroke-width="1"/>
+    
+    <!-- Centro sólido -->
+    <circle cx="0" cy="0" r="5" class="fetec-gear-center"/>
+    
+    <!-- Destaque no centro -->
+    <circle cx="0" cy="0" r="2.5" fill="#0A0A0A"/>
+  </g>
+  
+  <!-- TEXTO FETEC -->
+  <text x="70" y="38" class="fetec-text">FETEC</text>
+  
+  <!-- LINHA DECORATIVA -->
+  <line x1="65" y1="45" x2="155" y2="45" stroke="#00DC41" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- SUBTITLE (PEQUENO) -->
+  <text x="70" y="53" class="fetec-subtitle">ASSISTÊNCIA TÉCNICA</text>
+</svg>
