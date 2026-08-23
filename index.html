@@ -2,13 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Gestão de OS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gestão de OS - Assistência Técnica</title>
+  
+  <!-- ESTILOS -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- HEADER -->
   <div class="container">
+    
+    <!-- ========== HEADER ========== -->
     <div class="header">
       <div>
         <h1>Ordens de Serviço</h1>
@@ -20,7 +23,7 @@
       </div>
     </div>
 
-    <!-- ESTATÍSTICAS -->
+    <!-- ========== ESTATÍSTICAS ========== -->
     <div class="stats-grid">
       <div class="stat-card blue">
         <div class="label">Total</div>
@@ -48,7 +51,7 @@
       </div>
     </div>
 
-    <!-- TABELA -->
+    <!-- ========== TABELA DE OS ========== -->
     <div class="card">
       <div class="card-header">
         <h2>Lista de OS</h2>
@@ -83,9 +86,10 @@
         </div>
       </div>
     </div>
+
   </div>
 
-  <!-- MODAL -->
+  <!-- ========== MODAL PARA CRIAR/EDITAR ========== -->
   <div class="modal-overlay" id="modalFundo">
     <div class="modal">
       <button class="modal-close" onclick="fecharModal()">×</button>
@@ -95,6 +99,7 @@
         <input type="hidden" id="indiceEdicao" value="-1">
         
         <div class="form-grid">
+          <!-- Linha 1 -->
           <div class="form-group">
             <label>Número OS</label>
             <input type="text" id="fNumeroOS" readonly>
@@ -104,6 +109,7 @@
             <input type="date" id="fData" required>
           </div>
           
+          <!-- Linha 2 -->
           <div class="form-group">
             <label>Cliente *</label>
             <input type="text" id="fCliente" required>
@@ -113,6 +119,7 @@
             <input type="tel" id="fTelefone">
           </div>
           
+          <!-- Linha 3 -->
           <div class="form-group">
             <label>WhatsApp</label>
             <input type="tel" id="fWhatsapp">
@@ -122,6 +129,7 @@
             <input type="text" id="fAparelho" required>
           </div>
           
+          <!-- Linha 4 -->
           <div class="form-group">
             <label>Marca</label>
             <input type="text" id="fMarca">
@@ -131,11 +139,13 @@
             <input type="text" id="fModelo">
           </div>
           
+          <!-- Linha 5 - Full Width -->
           <div class="form-group full-width">
             <label>Defeito *</label>
             <textarea id="fDefeito" required></textarea>
           </div>
           
+          <!-- Linha 6 -->
           <div class="form-group">
             <label>Endereço</label>
             <input type="text" id="fEndereco">
@@ -145,6 +155,7 @@
             <input type="text" id="fComplemento">
           </div>
           
+          <!-- Linha 7 -->
           <div class="form-group">
             <label>CEP</label>
             <input type="text" id="fCEP">
@@ -154,6 +165,7 @@
             <input type="text" id="fTecnico">
           </div>
           
+          <!-- Linha 8 -->
           <div class="form-group">
             <label>Valor Serviço (R$)</label>
             <input type="number" id="fVS" min="0" step="0.01" value="0">
@@ -163,6 +175,7 @@
             <input type="number" id="fVP" min="0" step="0.01" value="0">
           </div>
           
+          <!-- Linha 9 -->
           <div class="form-group">
             <label>Status</label>
             <select id="fStatus">
@@ -177,11 +190,13 @@
             <input type="date" id="fDC">
           </div>
           
+          <!-- Linha 10 - Full Width -->
           <div class="form-group full-width">
             <label>Observações</label>
             <textarea id="fObs"></textarea>
           </div>
           
+          <!-- Ações -->
           <div class="form-actions">
             <button type="button" class="btn btn-danger" onclick="fecharModal()">Cancelar</button>
             <button type="submit" class="btn btn-success">Salvar</button>
@@ -191,10 +206,11 @@
     </div>
   </div>
 
-  <!-- TOAST -->
+  <!-- ========== NOTIFICAÇÕES ========== -->
   <div class="toast" id="toast"></div>
 
-  <!-- SCRIPTS -->
+  <!-- ========== SCRIPTS ========== -->
+  <!-- Tipo "module" permite usar import/export -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

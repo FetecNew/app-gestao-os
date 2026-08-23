@@ -10,3 +10,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Exportar para usar em outros arquivos
 export { supabase };
+
+// Testar conexão (abra o console do navegador com F12)
+supabase.from('ordens_servico')
+  .select('count(*)', { count: 'exact' })
+  .then(res => console.log('✅ Supabase conectado! Total de OS:', res.count))
+  .catch(err => console.error('❌ Erro conexão:', err));
