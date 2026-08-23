@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Gestão de OS - Assistência Técnica</title>
+  <title>Gestão de OS FETEC - Assistência Técnica</title>
   
-  <!-- ESTILOS -->
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- ESTILOS FETEC -->
+  <link rel="stylesheet" href="css/fetec-theme.css">
+  
+  <!-- FAVICON -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300DC41'/><text x='50' y='65' font-size='60' font-weight='bold' fill='%230A0A0A' text-anchor='middle'>⚙</text></svg>">
 </head>
 <body>
   <div class="container">
@@ -14,19 +17,27 @@
     <!-- ========== HEADER ========== -->
     <div class="header">
       <div>
-        <h1>Ordens de Serviço</h1>
-        <span>Assistência Técnica Linha Branca</span>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: invert(1);">
+            <circle cx="12" cy="12" r="10" stroke="#00DC41" stroke-width="2"/>
+            <circle cx="12" cy="12" r="3" fill="#00DC41"/>
+            <circle cx="12" cy="12" r="6" fill="none" stroke="#00DC41" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
+          </svg>
+          <span style="font-weight: 700; font-size: 0.95em; letter-spacing: 2px;">FETEC</span>
+        </div>
+        <h1>Gestão de OS</h1>
+        <span>Assistência Técnica de Linha Branca - São José dos Campos</span>
       </div>
       <div class="header-actions">
-        <button class="btn btn-outline" onclick="exportarCSV()">📊 CSV</button>
-        <button class="btn btn-primary" onclick="abrirNovaOS()">+ Nova OS</button>
+        <button class="btn btn-outline" onclick="exportarCSV()" title="Exportar dados em CSV">📊 Exportar</button>
+        <button class="btn btn-primary" onclick="abrirNovaOS()" title="Criar nova ordem de serviço">➕ Nova OS</button>
       </div>
     </div>
 
     <!-- ========== ESTATÍSTICAS ========== -->
     <div class="stats-grid">
       <div class="stat-card blue">
-        <div class="label">Total</div>
+        <div class="label">Total de OS</div>
         <div class="number" id="sTotal">0</div>
       </div>
       <div class="stat-card orange">
@@ -34,7 +45,7 @@
         <div class="number" id="sAbertas">0</div>
       </div>
       <div class="stat-card blue">
-        <div class="label">Andamento</div>
+        <div class="label">Em Andamento</div>
         <div class="number" id="sAndamento">0</div>
       </div>
       <div class="stat-card green">
@@ -54,11 +65,11 @@
     <!-- ========== TABELA DE OS ========== -->
     <div class="card">
       <div class="card-header">
-        <h2>Lista de OS</h2>
+        <h2>📋 Ordens de Serviço</h2>
         <div class="filters-bar">
-          <input type="search" id="busca" placeholder="Buscar..." onkeyup="renderizar()">
+          <input type="search" id="busca" placeholder="Buscar cliente, OS, aparelho..." onkeyup="renderizar()">
           <select id="filtroStatus" onchange="renderizar()">
-            <option value="">Todos os Status</option>
+            <option value="">Todos</option>
             <option value="Aberto">Aberto</option>
             <option value="Em Andamento">Em Andamento</option>
             <option value="Finalizado">Finalizado</option>
@@ -92,8 +103,8 @@
   <!-- ========== MODAL PARA CRIAR/EDITAR ========== -->
   <div class="modal-overlay" id="modalFundo">
     <div class="modal">
-      <button class="modal-close" onclick="fecharModal()">×</button>
-      <h2 id="tituloModal">Nova Ordem de Serviço</h2>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+      <h2 id="tituloModal">⚙ Nova Ordem de Serviço</h2>
       
       <form onsubmit="event.preventDefault(); salvarOS();">
         <input type="hidden" id="indiceEdicao" value="-1">
@@ -101,105 +112,105 @@
         <div class="form-grid">
           <!-- Linha 1 -->
           <div class="form-group">
-            <label>Número OS</label>
+            <label>🔢 Número OS</label>
             <input type="text" id="fNumeroOS" readonly>
           </div>
           <div class="form-group">
-            <label>Data *</label>
+            <label>📅 Data *</label>
             <input type="date" id="fData" required>
           </div>
           
           <!-- Linha 2 -->
           <div class="form-group">
-            <label>Cliente *</label>
-            <input type="text" id="fCliente" required>
+            <label>👤 Cliente *</label>
+            <input type="text" id="fCliente" required placeholder="Nome do cliente">
           </div>
           <div class="form-group">
-            <label>Telefone</label>
-            <input type="tel" id="fTelefone">
+            <label>☎️ Telefone</label>
+            <input type="tel" id="fTelefone" placeholder="(00) 0000-0000">
           </div>
           
           <!-- Linha 3 -->
           <div class="form-group">
-            <label>WhatsApp</label>
-            <input type="tel" id="fWhatsapp">
+            <label>💬 WhatsApp</label>
+            <input type="tel" id="fWhatsapp" placeholder="(00) 99999-9999">
           </div>
           <div class="form-group">
-            <label>Aparelho *</label>
-            <input type="text" id="fAparelho" required>
+            <label>🔧 Aparelho *</label>
+            <input type="text" id="fAparelho" required placeholder="Ex: Geladeira">
           </div>
           
           <!-- Linha 4 -->
           <div class="form-group">
-            <label>Marca</label>
-            <input type="text" id="fMarca">
+            <label>🏷️ Marca</label>
+            <input type="text" id="fMarca" placeholder="Ex: Brastemp">
           </div>
           <div class="form-group">
-            <label>Modelo</label>
-            <input type="text" id="fModelo">
+            <label>📦 Modelo</label>
+            <input type="text" id="fModelo" placeholder="Ex: BRE80">
           </div>
           
           <!-- Linha 5 - Full Width -->
           <div class="form-group full-width">
-            <label>Defeito *</label>
-            <textarea id="fDefeito" required></textarea>
+            <label>⚠️ Defeito *</label>
+            <textarea id="fDefeito" required placeholder="Descreva o defeito apresentado"></textarea>
           </div>
           
           <!-- Linha 6 -->
           <div class="form-group">
-            <label>Endereço</label>
-            <input type="text" id="fEndereco">
+            <label>🏠 Endereço</label>
+            <input type="text" id="fEndereco" placeholder="Rua, número">
           </div>
           <div class="form-group">
-            <label>Complemento</label>
-            <input type="text" id="fComplemento">
+            <label>📝 Complemento</label>
+            <input type="text" id="fComplemento" placeholder="Apto, sala, etc">
           </div>
           
           <!-- Linha 7 -->
           <div class="form-group">
-            <label>CEP</label>
-            <input type="text" id="fCEP">
+            <label>📮 CEP</label>
+            <input type="text" id="fCEP" placeholder="00000-000">
           </div>
           <div class="form-group">
-            <label>Técnico</label>
-            <input type="text" id="fTecnico">
+            <label>👨‍🔧 Técnico</label>
+            <input type="text" id="fTecnico" placeholder="Nome do técnico">
           </div>
           
           <!-- Linha 8 -->
           <div class="form-group">
-            <label>Valor Serviço (R$)</label>
+            <label>💵 Valor Serviço (R$)</label>
             <input type="number" id="fVS" min="0" step="0.01" value="0">
           </div>
           <div class="form-group">
-            <label>Valor Peças (R$)</label>
+            <label>🛠️ Valor Peças (R$)</label>
             <input type="number" id="fVP" min="0" step="0.01" value="0">
           </div>
           
           <!-- Linha 9 -->
           <div class="form-group">
-            <label>Status</label>
+            <label>🎯 Status</label>
             <select id="fStatus">
-              <option value="Aberto">Aberto</option>
-              <option value="Em Andamento">Em Andamento</option>
-              <option value="Finalizado">Finalizado</option>
-              <option value="Entregue">Entregue</option>
+              <option value="Aberto">🟠 Aberto</option>
+              <option value="Em Andamento">🟢 Em Andamento</option>
+              <option value="Finalizado">✅ Finalizado</option>
+              <option value="Entregue">📦 Entregue</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Data Conclusão</label>
+            <label>🏁 Data Conclusão</label>
             <input type="date" id="fDC">
           </div>
           
           <!-- Linha 10 - Full Width -->
           <div class="form-group full-width">
-            <label>Observações</label>
-            <textarea id="fObs"></textarea>
+            <label>📌 Observações</label>
+            <textarea id="fObs" placeholder="Notas adicionais, recomendações, etc"></textarea>
           </div>
           
           <!-- Ações -->
           <div class="form-actions">
-            <button type="button" class="btn btn-danger" onclick="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-success">Salvar</button>
+            <button type="button" class="btn btn-danger" onclick="fecharModal()">✕ Cancelar</button>
+            <button type="submit" class="btn btn-success">✓ Salvar</button>
           </div>
         </div>
       </form>
