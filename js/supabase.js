@@ -1,7 +1,7 @@
 // ⚙️ CONFIGURAÇÃO SUPABASE - VERSÃO MINIMALISTA
 
 const SUPABASE_URL = 'https://gtnbmhibdahcihoiuxwf.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bmJtaGliZGFoY2lob2l1eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI0ODA2NjcsImV4cCI6MTk3ODA1NjY2N30.B_KzFrLd8Z_8xK1d-F1ZzJWnJMXX-xJwXKh6H-YY7qE';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bmJtaGliZGFoY2lob2l1eHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NDY2NTUsImV4cCI6MjEwMzAyMjY1NX0.d-OMXpYDs5s2ozpWqgcXMbQGhUp9fmD6rWT993d2etU';
 
 // Criar cliente Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);

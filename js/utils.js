@@ -77,6 +77,110 @@ export function exibirToast(mensagem, tipo = 'sucesso') {
   }, 3500);
 }
 
+// Formatar Telefone para Link do WhatsApp (adiciona DDI 55 se faltar)
+export function formatarTelefoneWhatsApp(telefone) {
+  const digitos = (telefone || '').replace(/\D/g, '');
+  if (!digitos) return '';
+  return digitos.length <= 11 ? `55${digitos}` : digitos;
+}
+
+// ========== MÁSCARAS (aplicadas conforme o usuário digita) ==========
+
+// Máscara de Telefone: (00) 0000-0000 ou (00) 00000-0000
+export function mascararTelefone(valor) {
+  let digitos = (valor || '').replace(/\D/g, '').slice(0, 11);
+
+  if (digitos.length <= 2) return digitos.replace(/^(\d*)/, '($1');
+  if (digitos.length <= 6) return digitos.replace(/^(\d{2})(\d*)/, '($1) $2');
+  if (digitos.length <= 10) {
+    return digitos.replace(/^(\d{2})(\d{4})(\d*)/, '($1) $2-$3');
+  }
+  return digitos.replace(/^(\d{2})(\d{5})(\d*)/, '($1) $2-$3');
+}
+
+// Máscara de CEP: 00000-000
+export function mascararCEP(valor) {
+  const digitos = (valor || '').replace(/\D/g, '').slice(0, 8);
+  if (digitos.length <= 5) return digitos;
+  return digitos.replace(/^(\d{5})(\d*)/, '$1-$2');
+}
+
+// Máscara de Moeda: trata a digitação como centavos e formata em R$ 0,00
+export function mascararMoeda(valor) {
+  const digitos = (valor || '').replace(/\D/g, '');
+  const numero = (parseInt(digitos || '0', 10)) / 100;
+  return numero.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  });
+}
+
+// Converte um valor mascarado (ex: "R$ 1.234,56") de volta para número (1234.56)
+export function desmascararMoeda(valor) {
+  const digitos = (valor || '').replace(/\D/g, '');
+  return (parseInt(digitos || '0', 10)) / 100;
+}
+
+// ========== CATÁLOGOS EDITÁVEIS (Aparelho, Marca, Campanha) ==========
+// Persistidos no localStorage do navegador
+
+const CATALOGOS_PADRAO = {
+  catalogo_aparelhos: ['Geladeira', 'Fogão', 'Máquina de Lavar', 'Micro-ondas', 'Ar-condicionado', 'Freezer'],
+  catalogo_marcas: ['Brastemp', 'Consul', 'Electrolux', 'LG', 'Samsung', 'Philco'],
+  catalogo_campanhas: ['01', '02']
+};
+
+function obterCatalogo(chave) {
+  try {
+    const salvo = localStorage.getItem(chave);
+    if (salvo) return JSON.parse(salvo);
+  } catch {
+    // ignora e usa padrão
+  }
+  return [...(CATALOGOS_PADRAO[chave] || [])];
+}
+
+function salvarCatalogo(chave, itens) {
+  localStorage.setItem(chave, JSON.stringify(itens));
+}
+
+function adicionarItemCatalogo(chave, item) {
+  const valor = (item || '').trim();
+  if (!valor) return null;
+
+  const itens = obterCatalogo(chave);
+  const existente = itens.find(i => i.toLowerCase() === valor.toLowerCase());
+  if (existente) return existente;
+
+  itens.push(valor);
+  salvarCatalogo(chave, itens);
+  return valor;
+}
+
+export function obterAparelhos() {
+  return obterCatalogo('catalogo_aparelhos');
+}
+
+export function adicionarAparelho(nome) {
+  return adicionarItemCatalogo('catalogo_aparelhos', nome);
+}
+
+export function obterMarcas() {
+  return obterCatalogo('catalogo_marcas');
+}
+
+export function adicionarMarca(nome) {
+  return adicionarItemCatalogo('catalogo_marcas', nome);
+}
+
+export function obterCampanhas() {
+  return obterCatalogo('catalogo_campanhas');
+}
+
+export function adicionarCampanha(nome) {
+  return adicionarItemCatalogo('catalogo_campanhas', nome);
+}
+
 // Copiar para Área de Transferência
 export function copiarParaClipboard(texto) {
   navigator.clipboard.writeText(texto).then(() => {

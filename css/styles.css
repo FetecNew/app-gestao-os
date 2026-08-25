@@ -9,6 +9,7 @@
   --fetec-gray-light: #333333;
   --fetec-gray-lighter: #999999;
   --fetec-border: rgba(0, 220, 65, 0.2);
+  color-scheme: dark;
 }
 
 /* ========== RESET UNIVERSAL ========== */
@@ -18,6 +19,7 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
+
 
 /* ========== BODY ========== */
 body {
@@ -460,6 +462,52 @@ tbody tr:nth-child(even) {
 .form-group textarea {
   min-height: 60px;
   resize: vertical;
+}
+
+/* Garante fundo escuro nas opções do select em todos os navegadores */
+.form-group select option,
+.filters-bar select option {
+  background: var(--fetec-gray-light);
+  color: var(--fetec-white);
+}
+
+/* Ícone do calendário/relógio visível no tema escuro */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator,
+.form-group input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.form-group .input-wrapper .btn-add {
+  padding: 8px 12px;
+  border: 2px solid var(--fetec-green);
+  border-radius: 8px;
+  background: var(--fetec-green);
+  color: var(--fetec-dark);
+  font-weight: 700;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.form-group .input-wrapper .btn-add:active {
+  background: #00B833;
+}
+
+.form-group.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group.checkbox-group label {
+  text-transform: none;
+  font-size: 0.85em;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--fetec-green);
 }
 
 .form-actions {

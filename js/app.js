@@ -1,18 +1,64 @@
 // 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
 
 import supabase from './supabase.js';
-import { 
-  formatarData, 
-  formatarMoeda, 
-  gerarNumeroOS, 
+import {
+  formatarData,
+  formatarMoeda,
+  gerarNumeroOS,
   validarFormulario,
-  exibirToast 
+  exibirToast,
+  formatarTelefoneWhatsApp,
+  mascararTelefone,
+  mascararCEP,
+  mascararMoeda,
+  desmascararMoeda,
+  obterAparelhos,
+  adicionarAparelho,
+  obterMarcas,
+  adicionarMarca,
+  obterCampanhas,
+  adicionarCampanha
 } from './utils.js';
 
 // ========== VARIÁVEIS GLOBAIS ==========
 let lista_os = [];
 let indice_edicao = -1;
 let tecnico_padrao = null;
+
+// ========== COMBOS EDITÁVEIS (Aparelho, Marca, Campanha) ==========
+function preencherSelect(id, itens, valorSelecionado) {
+  const select = document.getElementById(id);
+  const valorAtual = valorSelecionado !== undefined ? valorSelecionado : select.value;
+
+  select.innerHTML = '<option value="">Selecione...</option>' +
+    itens.map(item => `<option value="${item}">${item}</option>`).join('');
+
+  if (valorAtual) select.value = valorAtual;
+}
+
+function atualizarCombos(valores = {}) {
+  preencherSelect('fAparelho', obterAparelhos(), valores.aparelho);
+  preencherSelect('fMarca', obterMarcas(), valores.marca);
+  preencherSelect('fCampanha', obterCampanhas(), valores.campanha);
+}
+
+function adicionarItemAparelho() {
+  const nome = prompt('Nome do novo aparelho:');
+  const salvo = adicionarAparelho(nome);
+  if (salvo) preencherSelect('fAparelho', obterAparelhos(), salvo);
+}
+
+function adicionarItemMarca() {
+  const nome = prompt('Nome da nova marca:');
+  const salvo = adicionarMarca(nome);
+  if (salvo) preencherSelect('fMarca', obterMarcas(), salvo);
+}
+
+function adicionarItemCampanha() {
+  const nome = prompt('Nome/código da nova campanha:');
+  const salvo = adicionarCampanha(nome);
+  if (salvo) preencherSelect('fCampanha', obterCampanhas(), salvo);
+}
 
 // ========== INICIALIZAÇÃO ==========
 async function inicializar() {
@@ -94,8 +140,8 @@ async function salvarOS() {
     cep: document.getElementById('fCEP').value.trim(),
     aparelho: document.getElementById('fAparelho').value.trim(),
     marca: document.getElementById('fMarca').value.trim(),
-    valor_servico: parseFloat(document.getElementById('fVS').value) || 0,
-    valor_pecas: parseFloat(document.getElementById('fVP').value) || 0,
+    valor_servico: desmascararMoeda(document.getElementById('fVS').value) || 0,
+    valor_pecas: desmascararMoeda(document.getElementById('fVP').value) || 0,
     periodo_visita: document.getElementById('fPeriodo').value || 'Manhã',
     campanha: document.getElementById('fCampanha').value || null,
     status: document.getElementById('fStatus').value,
@@ -168,10 +214,9 @@ function verOS(id) {
   preencherForm(os);
   habilitarEdicao(false);
   
-  document.querySelector('.form-actions').innerHTML = 
+  document.querySelector('.form-actions').innerHTML =
     '<button type="button" class="btn btn-warning" onclick="editarOS('+os.id+')">✏️ Editar</button>' +
     '<button type="button" class="btn btn-success" onclick="imprimirOS('+os.id+')">🖨️ Imprimir</button>' +
-    '<button type="button" class="btn btn-primary" onclick="exportarWhatsApp('+os.id+')">📱 WhatsApp</button>' +
     '<button type="button" class="btn btn-danger" onclick="fecharModal()">Fechar</button>';
   
   document.getElementById('modalFundo').classList.add('active');
@@ -203,26 +248,30 @@ function editarOS(id) {
 
 // ========== PREENCHER FORMULÁRIO ==========
 function preencherForm(os) {
+  // Garante que os selects já tenham as opções (inclusive itens legados que
+  // não estejam no catálogo) antes de atribuir o valor selecionado.
+  if (os.aparelho) adicionarAparelho(os.aparelho);
+  if (os.marca) adicionarMarca(os.marca);
+  if (os.campanha) adicionarCampanha(os.campanha);
+  atualizarCombos({ aparelho: os.aparelho, marca: os.marca, campanha: os.campanha });
+
   document.getElementById('fNumeroOS').value = os.numero_os || '';
   document.getElementById('fData').value = os.data_abertura || '';
   document.getElementById('fCliente').value = os.cliente || '';
-  document.getElementById('fTelefone').value = os.telefone || '';
+  document.getElementById('fTelefone').value = mascararTelefone(os.telefone || '');
   document.getElementById('fEndereco').value = os.endereco || '';
   document.getElementById('fComplemento').value = os.complemento || '';
-  document.getElementById('fCEP').value = os.cep || '';
-  document.getElementById('fAparelho').value = os.aparelho || '';
-  document.getElementById('fMarca').value = os.marca || '';
-  document.getElementById('fVS').value = os.valor_servico || 0;
-  document.getElementById('fVP').value = os.valor_pecas || 0;
+  document.getElementById('fCEP').value = mascararCEP(os.cep || '');
+  document.getElementById('fVS').value = mascararMoeda(String(Math.round((os.valor_servico || 0) * 100)));
+  document.getElementById('fVP').value = mascararMoeda(String(Math.round((os.valor_pecas || 0) * 100)));
   document.getElementById('fPeriodo').value = os.periodo_visita || 'Manhã';
-  document.getElementById('fCampanha').value = os.campanha || '';
   document.getElementById('fStatus').value = os.status || 'Visita';
   document.getElementById('fObs').value = os.observacoes || '';
 }
 
 // ========== HABILITAR/DESABILITAR EDIÇÃO ==========
 function habilitarEdicao(habilitar) {
-  const campos = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+  const campos = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea, .form-group .btn-add');
   campos.forEach(campo => {
     campo.disabled = !habilitar;
   });
@@ -278,6 +327,7 @@ function renderizar() {
       <td style="display: flex; gap: 5px;">
         <button class="btn btn-sm btn-primary" onclick="verOS(${os.id})" title="Ver">👁️</button>
         <button class="btn btn-sm btn-warning" onclick="editarOS(${os.id})" title="Editar">✏️</button>
+        <button class="btn btn-sm" style="background:#25D366;border:2px solid #25D366;color:#0A0A0A" onclick="abrirModalWhatsapp(${os.id})" title="Enviar por WhatsApp">📱</button>
         <button class="btn btn-sm btn-danger" onclick="excluirOS(${os.id})" title="Deletar">🗑️</button>
       </td>
     `;
@@ -306,10 +356,11 @@ function atualizarEstatisticas() {
 function abrirNovaOS() {
   document.getElementById('tituloModal').textContent = 'Nova Ordem de Serviço';
   document.getElementById('indiceEdicao').value = '-1';
+  atualizarCombos();
+  limparFormulario();
   document.getElementById('fNumeroOS').value = gerarNumeroOS();
   document.getElementById('fData').value = new Date().toISOString().split('T')[0];
   document.getElementById('fPeriodo').value = 'Manhã';
-  limparFormulario();
   habilitarEdicao(true);
   
   document.querySelector('.form-actions').innerHTML = 
@@ -328,6 +379,8 @@ function limparFormulario() {
   document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(el => {
     el.value = '';
   });
+  document.getElementById('fVS').value = mascararMoeda('0');
+  document.getElementById('fVP').value = mascararMoeda('0');
   document.getElementById('fPeriodo').value = 'Manhã';
   document.getElementById('fStatus').value = 'Visita';
 }
@@ -369,34 +422,41 @@ function imprimirOS(id) {
   w.document.close();
 }
 
-// ========== EXPORTAR PARA WHATSAPP ==========
-async function exportarWhatsApp(id) {
-  var lista = lista_os, os = null;
-  for (var i = 0; i < lista.length; i++) { 
-    if (lista[i].id === id) { 
-      os = lista[i]; 
-      break; 
-    } 
-  }
+// ========== ENVIAR PELO WHATSAPP (MODAL ÚNICO) ==========
+function abrirModalWhatsapp(id) {
+  const os = lista_os.find(o => o.id === id);
   if (!os) return;
-  
-  // Mostrar modal para editar técnico
-  const nomeTecnico = tecnico_padrao?.nome_tecnico || '';
-  const telefoneTecnico = tecnico_padrao?.telefone_tecnico || '';
-  
-  const nomeInput = prompt('Nome do Técnico:', nomeTecnico);
-  if (nomeInput === null) return; // Cancelado
-  
-  const telefoneInput = prompt('Telefone do Técnico (ex: 11999999999):', telefoneTecnico);
-  if (telefoneInput === null) return; // Cancelado
-  
-  // Salvar como padrão
-  const ehPadrao = confirm('Usar este técnico como padrão para futuras exportações?');
-  
+
+  document.getElementById('fWhatsappOsId').value = id;
+  document.getElementById('fWhatsappNome').value = tecnico_padrao?.nome_tecnico || '';
+  document.getElementById('fWhatsappTelefone').value = mascararTelefone(tecnico_padrao?.telefone_tecnico || '');
+  document.getElementById('fWhatsappSalvarPadrao').checked = false;
+
+  document.getElementById('modalWhatsappFundo').classList.add('active');
+}
+
+function fecharModalWhatsapp() {
+  document.getElementById('modalWhatsappFundo').classList.remove('active');
+}
+
+async function confirmarEnvioWhatsapp() {
+  const id = parseInt(document.getElementById('fWhatsappOsId').value, 10);
+  const os = lista_os.find(o => o.id === id);
+  if (!os) return;
+
+  const nomeInput = document.getElementById('fWhatsappNome').value.trim();
+  const telefoneInput = document.getElementById('fWhatsappTelefone').value.trim();
+  const ehPadrao = document.getElementById('fWhatsappSalvarPadrao').checked;
+
+  if (!nomeInput || !telefoneInput) {
+    exibirToast('Preencha nome e telefone do técnico', 'erro');
+    return;
+  }
+
   if (ehPadrao) {
     await salvarTecnicoPadrao(nomeInput, telefoneInput);
   }
-  
+
   // Montar mensagem WhatsApp
   const mensagem = `OS #${os.numero_os} - ${os.status}
 
@@ -406,17 +466,17 @@ Aparelho: ${os.aparelho}${os.marca ? ' (' + os.marca + ')' : ''}
 Endereço: ${os.endereco || 'N/A'}
 ${os.complemento ? 'Complemento: ' + os.complemento + '\n' : ''}CEP: ${os.cep || 'N/A'}
 Período: ${os.periodo_visita || 'N/A'}
-${os.campanha ? 'Campanha: ' + os.campanha + '\n' : ''}Valor: ${formatarMoeda(os.valor_servico + os.valor_pecas)}
-${os.observacoes ? '\nObservações: ' + os.observacoes : ''}
+${os.campanha ? 'Campanha: ' + os.campanha + '\n' : ''}${os.observacoes ? '\nObservações: ' + os.observacoes : ''}`;
 
-Técnico: ${nomeInput}
-Telefone Técnico: ${telefoneInput}`;
-  
-  // Abrir WhatsApp Web
+  // Abrir WhatsApp Web sempre na mesma aba (reaproveita se já estiver aberta)
   const mensagemCodificada = encodeURIComponent(mensagem);
-  const url = `https://web.whatsapp.com/send?text=${mensagemCodificada}`;
-  
-  window.open(url, '_blank');
+  const telefoneDestino = formatarTelefoneWhatsApp(telefoneInput);
+  const url = telefoneDestino
+    ? `https://wa.me/${telefoneDestino}?text=${mensagemCodificada}`
+    : `https://web.whatsapp.com/send?text=${mensagemCodificada}`;
+
+  window.open(url, 'whatsappWebOS');
+  fecharModalWhatsapp();
   exibirToast('✅ Abrindo WhatsApp...');
 }
 
@@ -498,6 +558,20 @@ window.verOS = verOS;
 window.editarOS = editarOS;
 window.imprimirOS = imprimirOS;
 window.exportarCSV = exportarCSV;
-window.exportarWhatsApp = exportarWhatsApp;
 window.formatarMoeda = formatarMoeda;
 window.formatarData = formatarData;
+
+// WhatsApp (modal único)
+window.abrirModalWhatsapp = abrirModalWhatsapp;
+window.fecharModalWhatsapp = fecharModalWhatsapp;
+window.confirmarEnvioWhatsapp = confirmarEnvioWhatsapp;
+
+// Combos editáveis (Aparelho, Marca, Campanha)
+window.adicionarItemAparelho = adicionarItemAparelho;
+window.adicionarItemMarca = adicionarItemMarca;
+window.adicionarItemCampanha = adicionarItemCampanha;
+
+// Máscaras (usadas via oninput no HTML)
+window.mascararTelefone = mascararTelefone;
+window.mascararCEP = mascararCEP;
+window.mascararMoeda = mascararMoeda;
