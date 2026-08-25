@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# OS files
+.DS_Store
+
+# Build output
+build/
+
+# Editor directories
+.vscode/
+.idea/

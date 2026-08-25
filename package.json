@@ -1,0 +1,33 @@
+{
+  "name": "app-gestao-os",
+  "version": "1.0.0",
+  "description": "Aplicação de Gestão de Ordens de Serviço",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"No tests yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FetecNew/app-gestao-os.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FetecNew/app-gestao-os/issues"
+  },
+  "homepage": "https://github.com/FetecNew/app-gestao-os#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
+    "axios": "^1.19.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
