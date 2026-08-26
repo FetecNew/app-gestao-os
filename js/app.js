@@ -9,6 +9,8 @@ import {
   exibirToast,
   formatarTelefoneWhatsApp,
   normalizarTexto,
+  escaparCSV,
+  forcarTextoCSV,
   obterDataLocalISO,
   mascararTelefone,
   mascararCEP,
@@ -27,6 +29,7 @@ const ICONE_WHATSAPP = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#2
 
 // ========== VARIÁVEIS GLOBAIS ==========
 let lista_os = [];
+let lista_filtrada_atual = [];
 let indice_edicao = -1;
 let tecnico_padrao = null;
 
@@ -396,6 +399,9 @@ function renderizar() {
     });
   }
 
+  // Guarda a lista filtrada/ordenada atual para o CSV exportar o que está na tela
+  lista_filtrada_atual = filtrados;
+
   // Atualizar estatísticas (refletindo os filtros aplicados)
   atualizarEstatisticas(filtrados);
 
@@ -614,21 +620,43 @@ async function salvarTecnicoPadrao(nome, telefone) {
 // ========== EXPORTAR PARA CSV ==========
 function exportarCSV() {
   try {
-    const os_list = lista_os;
-    
+    // Exporta exatamente o que está filtrado/visível na tela, não a lista inteira
+    const os_list = lista_filtrada_atual;
+
     if (os_list.length === 0) {
       exibirToast('Nenhuma OS para exportar', 'erro');
       return;
     }
-    
-    // Cabeçalho
-    const cabecalho = 'ID,Número,Data,Cliente,Aparelho,Período,Campanha,Status,Valor Total\n';
-    
-    // Linhas
-    const linhas = os_list.map(os =>
-      `${os.id},${os.numero_os},${os.data_abertura},${os.cliente},${os.aparelho},${os.periodo_visita},${os.campanha || '-'},${os.status},${os.valor_servico + os.valor_pecas}`
-    ).join('\n');
-    
+
+    const colunas = [
+      'ID', 'Número OS', 'Data', 'Cliente', 'Telefone', 'Endereço', 'Complemento', 'CEP',
+      'Aparelho', 'Marca', 'Valor Serviço', 'Valor Peças', 'Valor Total',
+      'Período', 'Campanha', 'Status', 'Observações'
+    ];
+    const cabecalho = colunas.join(',') + '\n';
+
+    // Linhas (cada campo é escapado para não quebrar o CSV com vírgulas/aspas/quebras de linha;
+    // Número OS usa forcarTextoCSV para não virar notação científica no Excel)
+    const linhas = os_list.map(os => [
+      escaparCSV(os.id),
+      forcarTextoCSV(os.numero_os),
+      escaparCSV(formatarData(os.data_abertura)),
+      escaparCSV(os.cliente),
+      escaparCSV(os.telefone || ''),
+      escaparCSV(os.endereco || ''),
+      escaparCSV(os.complemento || ''),
+      escaparCSV(os.cep || ''),
+      escaparCSV(os.aparelho),
+      escaparCSV(os.marca || ''),
+      escaparCSV(os.valor_servico),
+      escaparCSV(os.valor_pecas),
+      escaparCSV(os.valor_servico + os.valor_pecas),
+      escaparCSV(os.periodo_visita || ''),
+      escaparCSV(os.campanha || ''),
+      escaparCSV(os.status),
+      escaparCSV(os.observacoes || '')
+    ].join(',')).join('\n');
+
     // Criar blob
     const csv = '\uFEFF' + cabecalho + linhas;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

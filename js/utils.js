@@ -10,6 +10,25 @@ export function normalizarTexto(texto) {
     .toLowerCase();
 }
 
+// Escapa um valor para uso seguro em CSV: coloca entre aspas e duplica
+// aspas internas sempre que o texto contém vírgula, aspas ou quebra de linha
+// (sem isso, um cliente ou observação com vírgula corrompe as colunas).
+export function escaparCSV(valor) {
+  const texto = String(valor ?? '');
+  if (/[",\n]/.test(texto)) {
+    return `"${texto.replace(/"/g, '""')}"`;
+  }
+  return texto;
+}
+
+// Força o Excel/Google Sheets a tratar o valor como texto puro, mesmo que
+// contenha só dígitos. Sem isso, números longos como o Número OS
+// (ex: 2026082595580) viram notação científica (2,02608E+12) ao abrir o CSV.
+export function forcarTextoCSV(valor) {
+  const texto = String(valor ?? '').replace(/"/g, '""');
+  return `="${texto}"`;
+}
+
 // Formatação de Data
 export function formatarData(data) {
   if (!data) return '-';
