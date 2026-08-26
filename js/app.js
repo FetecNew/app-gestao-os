@@ -8,6 +8,7 @@ import {
   validarFormulario,
   exibirToast,
   formatarTelefoneWhatsApp,
+  normalizarTexto,
   mascararTelefone,
   mascararCEP,
   mascararMoeda,
@@ -278,26 +279,57 @@ function habilitarEdicao(habilitar) {
   document.getElementById('fNumeroOS').disabled = true; // Número sempre desabilitado
 }
 
+// ========== FILTRO E ORDENAÇÃO POR DATA ==========
+let ordenacaoData = null; // null | 'asc' | 'desc'
+
+function limparFiltroData() {
+  document.getElementById('filtroDataInicio').value = '';
+  document.getElementById('filtroDataFim').value = '';
+  renderizar();
+}
+
+function alternarOrdenacaoData() {
+  ordenacaoData = ordenacaoData === 'asc' ? 'desc' : ordenacaoData === 'desc' ? null : 'asc';
+
+  const icone = document.getElementById('iconeOrdenacaoData');
+  icone.textContent = ordenacaoData === 'asc' ? '▲' : ordenacaoData === 'desc' ? '▼' : '↕️';
+
+  renderizar();
+}
+
 // ========== RENDERIZAR TABELA ==========
 function renderizar() {
-  const busca = document.getElementById('busca').value.toLowerCase();
-  const filtroStatus = document.getElementById('filtroStatus').value;
-  
+  const busca = normalizarTexto(document.getElementById('busca').value);
+  const dataInicio = document.getElementById('filtroDataInicio').value;
+  const dataFim = document.getElementById('filtroDataFim').value;
+
   // Filtrar dados
   let filtrados = lista_os.filter(os => {
-    const matchBusca = !busca || 
-      os.cliente.toLowerCase().includes(busca) ||
+    // Busca inteligente: cliente, número da OS, aparelho, marca ou status (tolera acentos)
+    const matchBusca = !busca ||
+      normalizarTexto(os.cliente).includes(busca) ||
       os.numero_os.includes(busca) ||
-      os.aparelho.toLowerCase().includes(busca);
-    
-    const matchStatus = !filtroStatus || os.status === filtroStatus;
-    
-    return matchBusca && matchStatus;
+      normalizarTexto(os.aparelho).includes(busca) ||
+      normalizarTexto(os.marca).includes(busca) ||
+      normalizarTexto(os.status).includes(busca);
+
+    const matchDataInicio = !dataInicio || os.data_abertura >= dataInicio;
+    const matchDataFim = !dataFim || os.data_abertura <= dataFim;
+
+    return matchBusca && matchDataInicio && matchDataFim;
   });
-  
-  // Atualizar estatísticas
-  atualizarEstatisticas();
-  
+
+  // Ordenar por data (quando solicitado pelo usuário)
+  if (ordenacaoData) {
+    filtrados.sort((a, b) => {
+      const cmp = a.data_abertura.localeCompare(b.data_abertura);
+      return ordenacaoData === 'asc' ? cmp : -cmp;
+    });
+  }
+
+  // Atualizar estatísticas (refletindo os filtros aplicados)
+  atualizarEstatisticas(filtrados);
+
   // Limpar tabela
   const tbody = document.querySelector('tbody');
   tbody.innerHTML = '';
@@ -336,13 +368,13 @@ function renderizar() {
 }
 
 // ========== ATUALIZAR ESTATÍSTICAS ==========
-function atualizarEstatisticas() {
-  const total = lista_os.length;
-  const visita = lista_os.filter(o => o.status === 'Visita').length;
-  const garantia = lista_os.filter(o => o.status === 'Garantia').length;
-  const aprovada = lista_os.filter(o => o.status === 'Aprovada').length;
-  const desistencia = lista_os.filter(o => o.status === 'Desistência').length;
-  const faturamento = lista_os.reduce((sum, o) => sum + (o.valor_servico + o.valor_pecas || 0), 0);
+function atualizarEstatisticas(lista = lista_os) {
+  const total = lista.length;
+  const visita = lista.filter(o => o.status === 'Visita').length;
+  const garantia = lista.filter(o => o.status === 'Garantia').length;
+  const aprovada = lista.filter(o => o.status === 'Aprovada').length;
+  const desistencia = lista.filter(o => o.status === 'Desistência').length;
+  const faturamento = lista.reduce((sum, o) => sum + (o.valor_servico + o.valor_pecas || 0), 0);
   
   document.getElementById('sTotal').textContent = total;
   document.getElementById('sVisita').textContent = visita;
@@ -560,6 +592,8 @@ window.imprimirOS = imprimirOS;
 window.exportarCSV = exportarCSV;
 window.formatarMoeda = formatarMoeda;
 window.formatarData = formatarData;
+window.limparFiltroData = limparFiltroData;
+window.alternarOrdenacaoData = alternarOrdenacaoData;
 
 // WhatsApp (modal único)
 window.abrirModalWhatsapp = abrirModalWhatsapp;

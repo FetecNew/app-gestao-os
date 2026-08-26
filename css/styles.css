@@ -232,7 +232,7 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .card-header h2 {
@@ -557,6 +557,41 @@ tbody tr:nth-child(even) {
 .filters-bar input[type="search"] {
   flex: 1;
   min-width: 120px;
+  max-width: 320px;
+}
+
+.filtro-data-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75em;
+  color: var(--fetec-gray-lighter);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.filtro-data-label input[type="date"] {
+  padding: 8px 10px;
+  border: 2px solid rgba(0, 220, 65, 0.3);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--fetec-gray-light);
+  color: var(--fetec-white);
+}
+
+.filtro-data-label input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.th-ordenavel {
+  cursor: pointer;
+  user-select: none;
+}
+
+.th-ordenavel:hover {
+  background: rgba(0, 220, 65, 0.25);
 }
 
 /* ========== TOAST (NOTIFICAÇÕES) ========== */

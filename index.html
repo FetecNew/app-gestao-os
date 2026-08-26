@@ -64,14 +64,10 @@
       <div class="card-header">
         <h2>📋 Ordens de Serviço</h2>
         <div class="filters-bar">
-          <input type="search" id="busca" placeholder="Buscar cliente, OS, aparelho..." onkeyup="renderizar()">
-          <select id="filtroStatus" onchange="renderizar()">
-            <option value="">Todos</option>
-            <option value="Visita">Visita</option>
-            <option value="Garantia">Garantia</option>
-            <option value="Aprovada">Aprovada</option>
-            <option value="Desistência">Desistência</option>
-          </select>
+          <input type="search" id="busca" placeholder="🔎 Buscar por cliente, OS, aparelho ou status..." onkeyup="renderizar()">
+          <label class="filtro-data-label">De <input type="date" id="filtroDataInicio" onchange="renderizar()"></label>
+          <label class="filtro-data-label">Até <input type="date" id="filtroDataFim" onchange="renderizar()"></label>
+          <button type="button" class="btn btn-outline btn-sm" onclick="limparFiltroData()" title="Limpar filtro de data">✕ Limpar datas</button>
         </div>
       </div>
       <div class="card-body">
@@ -80,7 +76,7 @@
             <thead>
               <tr>
                 <th>OS</th>
-                <th>Data</th>
+                <th class="th-ordenavel" onclick="alternarOrdenacaoData()" title="Clique para ordenar por data">Data <span id="iconeOrdenacaoData">↕️</span></th>
                 <th>Cliente</th>
                 <th>Aparelho</th>
                 <th>Valor</th>

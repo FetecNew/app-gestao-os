@@ -1,9 +1,27 @@
 // 🛠️ Funções Utilitárias
 
+// Remove acentos para permitir buscas mais tolerantes (ex: "desistencia" encontra "Desistência")
+const REGEX_DIACRITICOS = new RegExp('[̀-ͯ]', 'g');
+
+export function normalizarTexto(texto) {
+  return (texto || '')
+    .normalize('NFD')
+    .replace(REGEX_DIACRITICOS, '')
+    .toLowerCase();
+}
+
 // Formatação de Data
 export function formatarData(data) {
   if (!data) return '-';
-  
+
+  // Datas no formato YYYY-MM-DD (ex: campo <input type="date">) são tratadas
+  // diretamente para evitar que a conversão de fuso horário mude o dia exibido.
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(data);
+  if (isoMatch) {
+    const [, ano, mes, dia] = isoMatch;
+    return `${dia}/${mes}/${ano}`;
+  }
+
   try {
     const d = new Date(data);
     return new Intl.DateTimeFormat('pt-BR', {
