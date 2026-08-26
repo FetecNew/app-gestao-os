@@ -34,6 +34,17 @@ export function formatarData(data) {
   }
 }
 
+// Data de hoje no formato YYYY-MM-DD, usando o fuso horário local
+// (evita o bug de "new Date().toISOString()" retornar o dia seguinte
+// à noite, quando o horário local já virou o dia seguinte em UTC).
+export function obterDataLocalISO() {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
 // Formatação de Moeda
 export function formatarMoeda(valor) {
   return new Intl.NumberFormat('pt-BR', {
@@ -108,6 +119,7 @@ export function formatarTelefoneWhatsApp(telefone) {
 export function mascararTelefone(valor) {
   let digitos = (valor || '').replace(/\D/g, '').slice(0, 11);
 
+  if (!digitos) return '';
   if (digitos.length <= 2) return digitos.replace(/^(\d*)/, '($1');
   if (digitos.length <= 6) return digitos.replace(/^(\d{2})(\d*)/, '($1) $2');
   if (digitos.length <= 10) {

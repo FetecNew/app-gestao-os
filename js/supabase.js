@@ -8,6 +8,18 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 console.log('✅ Supabase conectado');
 
+// Em localhost, usa as tabelas de teste (teste_ordens_servico / teste_tecnico_padrao)
+// no mesmo projeto Supabase, para não misturar dados de teste com produção.
+const AMBIENTE_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const PREFIXO_TABELA = AMBIENTE_LOCAL ? 'teste_' : '';
+
+export const TABELA_ORDENS_SERVICO = `${PREFIXO_TABELA}ordens_servico`;
+export const TABELA_TECNICO_PADRAO = `${PREFIXO_TABELA}tecnico_padrao`;
+
+if (AMBIENTE_LOCAL) {
+  console.log(`🧪 Ambiente local — usando tabelas de teste: ${TABELA_ORDENS_SERVICO}, ${TABELA_TECNICO_PADRAO}`);
+}
+
 // Inicializar autenticação anônima ao carregar
 async function inicializarAuth() {
   try {

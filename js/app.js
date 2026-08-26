@@ -1,6 +1,6 @@
 // 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
 
-import supabase from './supabase.js';
+import supabase, { TABELA_ORDENS_SERVICO, TABELA_TECNICO_PADRAO } from './supabase.js';
 import {
   formatarData,
   formatarMoeda,
@@ -9,6 +9,7 @@ import {
   exibirToast,
   formatarTelefoneWhatsApp,
   normalizarTexto,
+  obterDataLocalISO,
   mascararTelefone,
   mascararCEP,
   mascararMoeda,
@@ -20,6 +21,9 @@ import {
   obterCampanhas,
   adicionarCampanha
 } from './utils.js';
+
+// Ícone oficial do WhatsApp (glifo da marca), em vez de emoji genérico de celular
+const ICONE_WHATSAPP = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/></svg>`;
 
 // ========== VARIÁVEIS GLOBAIS ==========
 let lista_os = [];
@@ -43,22 +47,57 @@ function atualizarCombos(valores = {}) {
   preencherSelect('fCampanha', obterCampanhas(), valores.campanha);
 }
 
-function adicionarItemAparelho() {
-  const nome = prompt('Nome do novo aparelho:');
-  const salvo = adicionarAparelho(nome);
-  if (salvo) preencherSelect('fAparelho', obterAparelhos(), salvo);
+// ========== MODAL ADICIONAR ITEM (Aparelho/Marca/Campanha) ==========
+const CONFIG_NOVO_ITEM = {
+  aparelho: { titulo: '➕ Novo Aparelho', label: '🔧 Nome do Aparelho', obter: obterAparelhos, adicionar: adicionarAparelho, selectId: 'fAparelho' },
+  marca: { titulo: '➕ Nova Marca', label: '🏷️ Nome da Marca', obter: obterMarcas, adicionar: adicionarMarca, selectId: 'fMarca' },
+  campanha: { titulo: '➕ Nova Campanha', label: '📢 Nome/Código da Campanha', obter: obterCampanhas, adicionar: adicionarCampanha, selectId: 'fCampanha' }
+};
+
+function abrirModalNovoItem(tipo) {
+  const config = CONFIG_NOVO_ITEM[tipo];
+  document.getElementById('fNovoItemTipo').value = tipo;
+  document.getElementById('tituloNovoItem').textContent = config.titulo;
+  document.getElementById('labelNovoItem').textContent = config.label;
+  document.getElementById('fNovoItemValor').value = '';
+  document.getElementById('modalNovoItemFundo').classList.add('active');
+  document.getElementById('fNovoItemValor').focus();
 }
 
-function adicionarItemMarca() {
-  const nome = prompt('Nome da nova marca:');
-  const salvo = adicionarMarca(nome);
-  if (salvo) preencherSelect('fMarca', obterMarcas(), salvo);
+function fecharModalNovoItem() {
+  document.getElementById('modalNovoItemFundo').classList.remove('active');
 }
 
-function adicionarItemCampanha() {
-  const nome = prompt('Nome/código da nova campanha:');
-  const salvo = adicionarCampanha(nome);
-  if (salvo) preencherSelect('fCampanha', obterCampanhas(), salvo);
+function confirmarNovoItem() {
+  const tipo = document.getElementById('fNovoItemTipo').value;
+  const config = CONFIG_NOVO_ITEM[tipo];
+  const nome = document.getElementById('fNovoItemValor').value.trim();
+
+  const salvo = config.adicionar(nome);
+  if (salvo) preencherSelect(config.selectId, config.obter(), salvo);
+
+  fecharModalNovoItem();
+}
+
+// ========== MODAL DE CONFIRMAÇÃO (genérico) ==========
+let acaoConfirmar = null;
+
+function abrirModalConfirmar(mensagem, aoConfirmar, tituloBotao = '🗑️ Excluir') {
+  document.getElementById('mensagemConfirmar').textContent = mensagem;
+  document.getElementById('btnConfirmarAcao').textContent = tituloBotao;
+  acaoConfirmar = aoConfirmar;
+  document.getElementById('modalConfirmarFundo').classList.add('active');
+}
+
+function fecharModalConfirmar() {
+  document.getElementById('modalConfirmarFundo').classList.remove('active');
+  acaoConfirmar = null;
+}
+
+function executarAcaoConfirmada() {
+  const acao = acaoConfirmar;
+  fecharModalConfirmar();
+  if (acao) acao();
 }
 
 // ========== INICIALIZAÇÃO ==========
@@ -73,9 +112,10 @@ async function inicializar() {
 async function carregarTecnicoPadrao() {
   try {
     const { data, error } = await supabase
-      .from('tecnico_padrao')
+      .from(TABELA_TECNICO_PADRAO)
       .select('*')
       .eq('eh_padrao', true)
+      .order('id', { ascending: false })
       .limit(1);
     
     if (error) {
@@ -96,7 +136,7 @@ async function carregarOS() {
     console.log('📊 Carregando Ordens de Serviço...');
     
     const { data, error } = await supabase
-      .from('ordens_servico')
+      .from(TABELA_ORDENS_SERVICO)
       .select('*')
       .order('id', { ascending: false });
     
@@ -153,7 +193,7 @@ async function salvarOS() {
     if (idx >= 0) {
       // ATUALIZAR
       const { error } = await supabase
-        .from('ordens_servico')
+        .from(TABELA_ORDENS_SERVICO)
         .update(novaOS)
         .eq('id', lista_os[idx].id);
       
@@ -162,7 +202,7 @@ async function salvarOS() {
     } else {
       // CRIAR NOVA
       const { error } = await supabase
-        .from('ordens_servico')
+        .from(TABELA_ORDENS_SERVICO)
         .insert([novaOS]);
       
       if (error) throw error;
@@ -179,24 +219,24 @@ async function salvarOS() {
 }
 
 // ========== EXCLUIR OS ==========
-async function excluirOS(id) {
-  if (!confirm('⚠️ Tem certeza que deseja excluir esta OS?')) return;
-  
-  try {
-    const { error } = await supabase
-      .from('ordens_servico')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
-    
-    exibirToast('✅ OS excluída!');
-    await carregarOS();
-    renderizar();
-  } catch (err) {
-    console.error('❌ Erro ao excluir:', err);
-    exibirToast('Erro ao excluir OS', 'erro');
-  }
+function excluirOS(id) {
+  abrirModalConfirmar('⚠️ Tem certeza que deseja excluir esta OS? Essa ação não pode ser desfeita.', async () => {
+    try {
+      const { error } = await supabase
+        .from(TABELA_ORDENS_SERVICO)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      exibirToast('✅ OS excluída!');
+      await carregarOS();
+      renderizar();
+    } catch (err) {
+      console.error('❌ Erro ao excluir:', err);
+      exibirToast('Erro ao excluir OS', 'erro');
+    }
+  });
 }
 
 // ========== VER DETALHES DA OS ==========
@@ -279,8 +319,15 @@ function habilitarEdicao(habilitar) {
   document.getElementById('fNumeroOS').disabled = true; // Número sempre desabilitado
 }
 
-// ========== FILTRO E ORDENAÇÃO POR DATA ==========
-let ordenacaoData = null; // null | 'asc' | 'desc'
+// ========== FILTRO DE DATA E ORDENAÇÃO DE COLUNAS ==========
+// Ordenação genérica: funciona para qualquer coluna clicável (data, cliente, status)
+let ordenacao = { campo: null, direcao: null }; // direcao: 'asc' | 'desc'
+
+const ICONES_ORDENACAO = {
+  data: 'iconeOrdenacaoData',
+  cliente: 'iconeOrdenacaoCliente',
+  status: 'iconeOrdenacaoStatus'
+};
 
 function limparFiltroData() {
   document.getElementById('filtroDataInicio').value = '';
@@ -288,30 +335,47 @@ function limparFiltroData() {
   renderizar();
 }
 
-function alternarOrdenacaoData() {
-  ordenacaoData = ordenacaoData === 'asc' ? 'desc' : ordenacaoData === 'desc' ? null : 'asc';
+function alternarOrdenacao(campo) {
+  if (ordenacao.campo !== campo) {
+    ordenacao = { campo, direcao: 'asc' };
+  } else if (ordenacao.direcao === 'asc') {
+    ordenacao.direcao = 'desc';
+  } else {
+    ordenacao = { campo: null, direcao: null };
+  }
 
-  const icone = document.getElementById('iconeOrdenacaoData');
-  icone.textContent = ordenacaoData === 'asc' ? '▲' : ordenacaoData === 'desc' ? '▼' : '↕️';
+  Object.entries(ICONES_ORDENACAO).forEach(([nomeCampo, idIcone]) => {
+    const icone = document.getElementById(idIcone);
+    if (!icone) return;
+    icone.textContent = ordenacao.campo !== nomeCampo
+      ? '↕️'
+      : ordenacao.direcao === 'asc' ? '▲' : '▼';
+  });
 
   renderizar();
 }
 
 // ========== RENDERIZAR TABELA ==========
 function renderizar() {
-  const busca = normalizarTexto(document.getElementById('busca').value);
+  // Múltiplos termos separados por vírgula = busca "OU" (ex: "visita, garantia")
+  const termosBusca = document.getElementById('busca').value
+    .split(',')
+    .map(termo => normalizarTexto(termo).trim())
+    .filter(termo => termo.length > 0);
+
   const dataInicio = document.getElementById('filtroDataInicio').value;
   const dataFim = document.getElementById('filtroDataFim').value;
 
   // Filtrar dados
   let filtrados = lista_os.filter(os => {
     // Busca inteligente: cliente, número da OS, aparelho, marca ou status (tolera acentos)
-    const matchBusca = !busca ||
-      normalizarTexto(os.cliente).includes(busca) ||
-      os.numero_os.includes(busca) ||
-      normalizarTexto(os.aparelho).includes(busca) ||
-      normalizarTexto(os.marca).includes(busca) ||
-      normalizarTexto(os.status).includes(busca);
+    const matchBusca = termosBusca.length === 0 || termosBusca.some(termo =>
+      normalizarTexto(os.cliente).includes(termo) ||
+      os.numero_os.includes(termo) ||
+      normalizarTexto(os.aparelho).includes(termo) ||
+      normalizarTexto(os.marca).includes(termo) ||
+      normalizarTexto(os.status).includes(termo)
+    );
 
     const matchDataInicio = !dataInicio || os.data_abertura >= dataInicio;
     const matchDataFim = !dataFim || os.data_abertura <= dataFim;
@@ -319,11 +383,16 @@ function renderizar() {
     return matchBusca && matchDataInicio && matchDataFim;
   });
 
-  // Ordenar por data (quando solicitado pelo usuário)
-  if (ordenacaoData) {
+  // Ordenar pela coluna escolhida pelo usuário (data, cliente ou status)
+  if (ordenacao.campo) {
     filtrados.sort((a, b) => {
-      const cmp = a.data_abertura.localeCompare(b.data_abertura);
-      return ordenacaoData === 'asc' ? cmp : -cmp;
+      let cmp;
+      if (ordenacao.campo === 'data') {
+        cmp = a.data_abertura.localeCompare(b.data_abertura);
+      } else {
+        cmp = a[ordenacao.campo].localeCompare(b[ordenacao.campo], 'pt-BR', { sensitivity: 'base' });
+      }
+      return ordenacao.direcao === 'asc' ? cmp : -cmp;
     });
   }
 
@@ -357,10 +426,10 @@ function renderizar() {
       <td>${os.campanha ? 'Camp. ' + os.campanha : '-'}</td>
       <td><span class="status-badge ${statusClass}">${os.status}</span></td>
       <td style="display: flex; gap: 5px;">
-        <button class="btn btn-sm btn-primary" onclick="verOS(${os.id})" title="Ver">👁️</button>
-        <button class="btn btn-sm btn-warning" onclick="editarOS(${os.id})" title="Editar">✏️</button>
-        <button class="btn btn-sm" style="background:#25D366;border:2px solid #25D366;color:#0A0A0A" onclick="abrirModalWhatsapp(${os.id})" title="Enviar por WhatsApp">📱</button>
-        <button class="btn btn-sm btn-danger" onclick="excluirOS(${os.id})" title="Deletar">🗑️</button>
+        <button class="btn btn-sm btn-acao" onclick="verOS(${os.id})" title="Ver">👁️</button>
+        <button class="btn btn-sm btn-acao" onclick="editarOS(${os.id})" title="Editar">✏️</button>
+        <button class="btn btn-sm btn-acao" onclick="abrirModalWhatsapp(${os.id})" title="Enviar por WhatsApp">${ICONE_WHATSAPP}</button>
+        <button class="btn btn-sm btn-acao btn-acao-excluir" onclick="excluirOS(${os.id})" title="Deletar">🗑️</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -391,7 +460,7 @@ function abrirNovaOS() {
   atualizarCombos();
   limparFormulario();
   document.getElementById('fNumeroOS').value = gerarNumeroOS();
-  document.getElementById('fData').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fData').value = obterDataLocalISO();
   document.getElementById('fPeriodo').value = 'Manhã';
   habilitarEdicao(true);
   
@@ -518,20 +587,21 @@ async function salvarTecnicoPadrao(nome, telefone) {
     // Se já existe um padrão, delete primeiro
     if (tecnico_padrao) {
       await supabase
-        .from('tecnico_padrao')
+        .from(TABELA_TECNICO_PADRAO)
         .delete()
         .eq('id', tecnico_padrao.id);
     }
     
     // Inserir novo
     const { data, error } = await supabase
-      .from('tecnico_padrao')
+      .from(TABELA_TECNICO_PADRAO)
       .insert([{
         nome_tecnico: nome,
         telefone_tecnico: telefone,
         eh_padrao: true
-      }]);
-    
+      }])
+      .select();
+
     if (error) throw error;
     
     tecnico_padrao = data[0];
@@ -566,7 +636,7 @@ function exportarCSV() {
     // Download
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `OS_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `OS_${obterDataLocalISO()}.csv`;
     link.click();
     
     exibirToast('✅ Arquivo exportado!');
@@ -593,7 +663,7 @@ window.exportarCSV = exportarCSV;
 window.formatarMoeda = formatarMoeda;
 window.formatarData = formatarData;
 window.limparFiltroData = limparFiltroData;
-window.alternarOrdenacaoData = alternarOrdenacaoData;
+window.alternarOrdenacao = alternarOrdenacao;
 
 // WhatsApp (modal único)
 window.abrirModalWhatsapp = abrirModalWhatsapp;
@@ -601,9 +671,13 @@ window.fecharModalWhatsapp = fecharModalWhatsapp;
 window.confirmarEnvioWhatsapp = confirmarEnvioWhatsapp;
 
 // Combos editáveis (Aparelho, Marca, Campanha)
-window.adicionarItemAparelho = adicionarItemAparelho;
-window.adicionarItemMarca = adicionarItemMarca;
-window.adicionarItemCampanha = adicionarItemCampanha;
+window.abrirModalNovoItem = abrirModalNovoItem;
+window.fecharModalNovoItem = fecharModalNovoItem;
+window.confirmarNovoItem = confirmarNovoItem;
+
+// Confirmação (genérico)
+window.fecharModalConfirmar = fecharModalConfirmar;
+window.executarAcaoConfirmada = executarAcaoConfirmada;
 
 // Máscaras (usadas via oninput no HTML)
 window.mascararTelefone = mascararTelefone;

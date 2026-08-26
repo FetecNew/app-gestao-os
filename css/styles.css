@@ -89,60 +89,52 @@ body {
   letter-spacing: 0.5px;
 }
 
-.btn-primary {
-  background: var(--fetec-green);
-  color: var(--fetec-dark);
-  border: 2px solid var(--fetec-green);
-}
-
-.btn-primary:active {
-  background: #00B833;
-  border-color: #00B833;
-  box-shadow: 0 0 15px rgba(0, 220, 65, 0.4);
-}
-
+/* Identidade única para todos os botões: fundo escuro translúcido,
+   borda colorida por semântica, texto sempre branco. A cor só se
+   intensifica no toque/clique (feedback), nunca no repouso. */
+.btn-primary,
 .btn-success {
-  background: var(--fetec-green);
-  color: var(--fetec-dark);
+  background: rgba(0, 220, 65, 0.12);
+  color: var(--fetec-white);
   border: 2px solid var(--fetec-green);
 }
 
+.btn-primary:active,
 .btn-success:active {
-  background: #00B833;
+  background: rgba(0, 220, 65, 0.3);
   box-shadow: 0 0 15px rgba(0, 220, 65, 0.4);
 }
 
 .btn-warning {
-  background: rgba(255, 165, 0, 0.8);
-  color: var(--fetec-dark);
+  background: rgba(255, 165, 0, 0.12);
+  color: var(--fetec-white);
   border: 2px solid rgba(255, 165, 0, 0.8);
 }
 
 .btn-warning:active {
-  background: #FF9500;
-  border-color: #FF9500;
+  background: rgba(255, 165, 0, 0.3);
+  box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
 }
 
 .btn-danger {
-  background: rgba(220, 53, 69, 0.8);
+  background: rgba(220, 53, 69, 0.12);
   color: var(--fetec-white);
   border: 2px solid rgba(220, 53, 69, 0.8);
 }
 
 .btn-danger:active {
-  background: #dc3545;
-  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.3);
   box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
 }
 
 .btn-outline {
   background: transparent;
   border: 2px solid var(--fetec-green);
-  color: var(--fetec-green);
+  color: var(--fetec-white);
 }
 
 .btn-outline:active {
-  background: rgba(0, 220, 65, 0.1);
+  background: rgba(0, 220, 65, 0.15);
   box-shadow: 0 0 15px rgba(0, 220, 65, 0.3);
 }
 
@@ -151,6 +143,26 @@ body {
   font-size: 0.8em;
   min-width: 38px;
   justify-content: center;
+}
+
+/* Botões de ação da tabela (Ver/Editar/WhatsApp/Deletar): mesmo fundo,
+   só os ícones (emojis, já coloridos por natureza) diferenciam a ação. */
+.btn-acao {
+  background: rgba(0, 220, 65, 0.1);
+  border: 2px solid rgba(0, 220, 65, 0.3);
+  color: var(--fetec-white);
+}
+
+.btn-acao:active {
+  background: rgba(0, 220, 65, 0.25);
+  border-color: var(--fetec-green);
+}
+
+/* Exceção: "Deletar" ganha um aviso vermelho só no toque/clique,
+   para não convidar a exclusão acidental sem feedback visual. */
+.btn-acao-excluir:active {
+  background: rgba(220, 53, 69, 0.25);
+  border-color: #dc3545;
 }
 
 /* ========== CARDS DE ESTATÍSTICAS ========== */
@@ -357,6 +369,17 @@ tbody tr:nth-child(even) {
   border: 1px solid var(--fetec-border);
 }
 
+.modal-pequeno {
+  max-width: 420px;
+}
+
+.modal-confirmar-mensagem {
+  color: var(--fetec-white);
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -554,10 +577,30 @@ tbody tr:nth-child(even) {
   box-shadow: 0 0 10px rgba(0, 220, 65, 0.3);
 }
 
+.busca-com-dica {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 320px;
+  min-width: 120px;
+}
+
 .filters-bar input[type="search"] {
   flex: 1;
-  min-width: 120px;
-  max-width: 320px;
+  min-width: 0;
+}
+
+.dica-icone {
+  cursor: help;
+  font-size: 0.95em;
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+.dica-icone:hover,
+.dica-icone:focus {
+  opacity: 1;
 }
 
 .filtro-data-label {
