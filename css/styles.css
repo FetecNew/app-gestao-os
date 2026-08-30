@@ -3,6 +3,8 @@
 
 :root {
   --fetec-green: #00DC41;
+  --fetec-green-text: #00DC41;
+  --fetec-on-accent: #0A0A0A;
   --fetec-dark: #0A0A0A;
   --fetec-white: #FFFFFF;
   --fetec-gray: #1a1a1a;
@@ -10,6 +12,31 @@
   --fetec-gray-lighter: #999999;
   --fetec-border: rgba(0, 220, 65, 0.2);
   color-scheme: dark;
+}
+
+/* ========== TEMA CLARO ========== */
+/* Fundo branco com detalhes em tons de verde da marca. */
+:root[data-theme="light"] {
+  --fetec-green-text: #0C8A3E;
+  --fetec-dark: #FFFFFF;
+  --fetec-white: #16321F;
+  --fetec-gray: #F3FAF4;
+  --fetec-gray-light: #E6F5E9;
+  --fetec-gray-lighter: #5C6B60;
+  --fetec-border: rgba(0, 168, 66, 0.25);
+  color-scheme: light;
+}
+
+:root[data-theme="light"] .form-group input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="light"] .form-group input[type="time"]::-webkit-calendar-picker-indicator,
+:root[data-theme="light"] .filtro-data-label input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+/* Texto "FETEC" do logo é branco fixo (feito para fundo escuro);
+   no tema claro precisa de uma cor escura para não sumir no fundo branco. */
+:root[data-theme="light"] .logo-fetec .fetec-text {
+  fill: #16321F;
 }
 
 /* ========== RESET UNIVERSAL ========== */
@@ -54,7 +81,7 @@ body {
   font-size: 1.4em;
   font-weight: 700;
   letter-spacing: 1px;
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   text-transform: uppercase;
 }
 
@@ -70,6 +97,33 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.btn-tema {
+  background: rgba(0, 220, 65, 0.1);
+  border: 2px solid var(--fetec-green);
+  color: var(--fetec-white);
+  font-size: 1em;
+}
+
+.btn-tema:active {
+  background: rgba(0, 220, 65, 0.25);
+}
+
+/* Linha da OS já atendida: leve destaque para diferenciar visualmente */
+tbody tr.os-atendida {
+  opacity: 0.7;
+}
+
+tbody tr.os-atendida td {
+  border-left: 3px solid var(--fetec-green);
+}
+
+.checkbox-atendido {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--fetec-green);
+  cursor: pointer;
 }
 
 /* ========== BOTÕES ========== */
@@ -193,7 +247,7 @@ body {
   font-size: 1.3em;
   font-weight: 700;
   margin-top: 2px;
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   text-shadow: 0 0 10px rgba(0, 220, 65, 0.3);
 }
 
@@ -208,7 +262,7 @@ body {
 }
 
 .stat-card.blue .number {
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
 }
 
 .stat-card.orange .number {
@@ -216,7 +270,7 @@ body {
 }
 
 .stat-card.green .number {
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
 }
 
 .stat-card.purple .number {
@@ -224,7 +278,7 @@ body {
 }
 
 .stat-card.teal .number {
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
 }
 
 /* ========== CARDS ========== */
@@ -250,7 +304,7 @@ body {
 .card-header h2 {
   font-size: 1em;
   font-weight: 700;
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -274,7 +328,7 @@ table {
 
 thead th {
   background: rgba(0, 220, 65, 0.15);
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   padding: 10px 12px;
   text-align: left;
   font-weight: 700;
@@ -320,7 +374,7 @@ tbody tr:nth-child(even) {
 
 .status-andamento {
   background: rgba(0, 220, 65, 0.2);
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   border: 1px solid var(--fetec-green);
 }
 
@@ -393,7 +447,7 @@ tbody tr:nth-child(even) {
 
 .modal h2 {
   margin-bottom: 20px;
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   padding-right: 30px;
   font-size: 1.1em;
   text-transform: uppercase;
@@ -438,7 +492,7 @@ tbody tr:nth-child(even) {
 .form-group label {
   font-size: 0.75em;
   font-weight: 700;
-  color: var(--fetec-green);
+  color: var(--fetec-green-text);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -506,7 +560,7 @@ tbody tr:nth-child(even) {
   border: 2px solid var(--fetec-green);
   border-radius: 8px;
   background: var(--fetec-green);
-  color: var(--fetec-dark);
+  color: var(--fetec-on-accent);
   font-weight: 700;
   cursor: pointer;
   flex: 0 0 auto;
@@ -644,7 +698,7 @@ tbody tr:nth-child(even) {
   left: 20px;
   right: 20px;
   background: var(--fetec-green);
-  color: var(--fetec-dark);
+  color: var(--fetec-on-accent);
   padding: 14px 20px;
   border-radius: 12px;
   z-index: 2000;

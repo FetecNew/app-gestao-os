@@ -10,6 +10,14 @@
   
   <!-- FAVICON -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300DC41'/><text x='50' y='65' font-size='60' font-weight='bold' fill='%230A0A0A'>⚙</text></svg>">
+
+  <!-- Aplica o tema salvo ANTES de renderizar, evitando flash da cor errada -->
+  <script>
+    (function () {
+      var tema = localStorage.getItem('tema') || 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
 </head>
 <body>
   <div class="container">
@@ -19,13 +27,47 @@
       <div>
 
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-          <img src="logo-fetec-v2.svg" alt="FETEC Logo" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));">
+          <svg class="logo-fetec" width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));" role="img" aria-label="FETEC Logo">
+            <defs>
+              <style>
+                .fetec-gear-outer { fill: none; stroke: #00DC41; stroke-width: 1.5; }
+                .fetec-gear-tooth { fill: #00DC41; }
+                .fetec-gear-center { fill: #00DC41; }
+                .fetec-text { fill: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
+                .fetec-subtitle { fill: #00DC41; font-family: 'Segoe UI', Arial, sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 0.5px; }
+              </style>
+            </defs>
+
+            <!-- ENGRENAGEM GRANDE E PROFISSIONAL -->
+            <g transform="translate(30, 30)">
+              <circle class="fetec-gear-outer" cx="0" cy="0" r="14"/>
+              <g class="fetec-gear-tooth">
+                <polygon points="0,-18 2,-15 -2,-15"/>
+                <polygon points="12.7,-12.7 14.5,-10 12,-13.5"/>
+                <polygon points="18,0 15,2 15,-2"/>
+                <polygon points="12.7,12.7 13.5,12 10,14.5"/>
+                <polygon points="0,18 2,15 -2,15"/>
+                <polygon points="-12.7,12.7 -13.5,12 -10,14.5"/>
+                <polygon points="-18,0 -15,2 -15,-2"/>
+                <polygon points="-12.7,-12.7 -14.5,-10 -12,-13.5"/>
+              </g>
+              <circle cx="0" cy="0" r="8.5" class="fetec-gear-outer" stroke-width="1"/>
+              <circle cx="0" cy="0" r="5" class="fetec-gear-center"/>
+              <circle cx="0" cy="0" r="2.5" fill="#0A0A0A"/>
+            </g>
+
+            <!-- TEXTO FETEC -->
+            <text x="70" y="38" class="fetec-text">FETEC</text>
+            <line x1="65" y1="45" x2="155" y2="45" stroke="#00DC41" stroke-width="1.5" opacity="0.6"/>
+            <text x="70" y="53" class="fetec-subtitle">ASSISTÊNCIA TÉCNICA</text>
+          </svg>
         </div>
 
         <h1>Gestão de OS</h1>
         <span>São José dos Campos</span>
       </div>
       <div class="header-actions">
+        <button class="btn btn-tema" id="btnAlternarTema" onclick="alternarTema()" title="Alternar tema claro/escuro">🌙</button>
         <button class="btn btn-outline" onclick="exportarCSV()" title="Exportar dados em CSV">📊 Exportar</button>
         <button class="btn btn-primary" onclick="abrirNovaOS()" title="Criar nova ordem de serviço">➕ Nova OS</button>
       </div>
@@ -86,6 +128,7 @@
                 <th>Período</th>
                 <th>Campanha</th>
                 <th class="th-ordenavel" onclick="alternarOrdenacao('status')" title="Clique para ordenar por status">Status <span id="iconeOrdenacaoStatus">↕️</span></th>
+                <th>Atendido</th>
                 <th>Ações</th>
               </tr>
             </thead>

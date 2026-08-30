@@ -23,6 +23,7 @@ create table if not exists public.ordens_servico (
   campanha text,
   status text not null default 'Visita',
   observacoes text,
+  atendido boolean not null default false,
   created_at timestamptz not null default now()
 );
 

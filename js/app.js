@@ -106,6 +106,7 @@ function executarAcaoConfirmada() {
 // ========== INICIALIZAÇÃO ==========
 async function inicializar() {
   console.log('🚀 Iniciando aplicação v2...');
+  atualizarIconeTema(document.documentElement.getAttribute('data-theme') || 'dark');
   await carregarOS();
   await carregarTecnicoPadrao();
   renderizar();
@@ -410,18 +411,19 @@ function renderizar() {
   tbody.innerHTML = '';
   
   if (filtrados.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #999;">Nenhuma OS encontrada</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #999;">Nenhuma OS encontrada</td></tr>';
     return;
   }
-  
+
   // Preencher tabela
   filtrados.forEach(os => {
     const tr = document.createElement('tr');
     const statusClass = `status-${os.status.toLowerCase().replace(' ', '')}`;
-    
+    if (os.atendido) tr.classList.add('os-atendida');
+
     // Definir ícone do período
     const iconePeriodo = os.periodo_visita === 'Manhã' ? '🌅' : '🌤️';
-    
+
     tr.innerHTML = `
       <td>${os.numero_os}</td>
       <td>${formatarData(os.data_abertura)}</td>
@@ -431,6 +433,9 @@ function renderizar() {
       <td>${iconePeriodo} ${os.periodo_visita || '-'}</td>
       <td>${os.campanha ? 'Camp. ' + os.campanha : '-'}</td>
       <td><span class="status-badge ${statusClass}">${os.status}</span></td>
+      <td style="text-align: center;">
+        <input type="checkbox" class="checkbox-atendido" ${os.atendido ? 'checked' : ''} onchange="marcarAtendido(${os.id}, this.checked)" title="Marcar como atendida">
+      </td>
       <td style="display: flex; gap: 5px;">
         <button class="btn btn-sm btn-acao" onclick="verOS(${os.id})" title="Ver">👁️</button>
         <button class="btn btn-sm btn-acao" onclick="editarOS(${os.id})" title="Editar">✏️</button>
@@ -440,6 +445,41 @@ function renderizar() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+// ========== MARCAR OS COMO ATENDIDA ==========
+async function marcarAtendido(id, valor) {
+  try {
+    const { error } = await supabase
+      .from(TABELA_ORDENS_SERVICO)
+      .update({ atendido: valor })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    const os = lista_os.find(o => o.id === id);
+    if (os) os.atendido = valor;
+
+    renderizar();
+  } catch (err) {
+    console.error('❌ Erro ao marcar atendida:', err);
+    exibirToast('Erro ao atualizar', 'erro');
+    renderizar(); // desfaz o estado visual do checkbox
+  }
+}
+
+// ========== TEMA CLARO/ESCURO ==========
+function alternarTema() {
+  const atual = document.documentElement.getAttribute('data-theme') || 'dark';
+  const novo = atual === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', novo);
+  localStorage.setItem('tema', novo);
+  atualizarIconeTema(novo);
+}
+
+function atualizarIconeTema(tema) {
+  const btn = document.getElementById('btnAlternarTema');
+  if (btn) btn.textContent = tema === 'dark' ? '☀️' : '🌙';
 }
 
 // ========== ATUALIZAR ESTATÍSTICAS ==========
@@ -631,7 +671,7 @@ function exportarCSV() {
     const colunas = [
       'ID', 'Número OS', 'Data', 'Cliente', 'Telefone', 'Endereço', 'Complemento', 'CEP',
       'Aparelho', 'Marca', 'Valor Serviço', 'Valor Peças', 'Valor Total',
-      'Período', 'Campanha', 'Status', 'Observações'
+      'Período', 'Campanha', 'Status', 'Atendido', 'Observações'
     ];
     const cabecalho = colunas.join(',') + '\n';
 
@@ -654,6 +694,7 @@ function exportarCSV() {
       escaparCSV(os.periodo_visita || ''),
       escaparCSV(os.campanha || ''),
       escaparCSV(os.status),
+      escaparCSV(os.atendido ? 'Sim' : 'Não'),
       escaparCSV(os.observacoes || '')
     ].join(',')).join('\n');
 
@@ -691,6 +732,8 @@ window.exportarCSV = exportarCSV;
 window.formatarMoeda = formatarMoeda;
 window.formatarData = formatarData;
 window.limparFiltroData = limparFiltroData;
+window.marcarAtendido = marcarAtendido;
+window.alternarTema = alternarTema;
 window.alternarOrdenacao = alternarOrdenacao;
 
 // WhatsApp (modal único)
