@@ -20,31 +20,8 @@ if (AMBIENTE_LOCAL) {
   console.log(`🧪 Ambiente local — usando tabelas de teste: ${TABELA_ORDENS_SERVICO}, ${TABELA_TECNICO_PADRAO}`);
 }
 
-// Inicializar autenticação anônima ao carregar
-async function inicializarAuth() {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      console.log('📝 Iniciando login anônimo...');
-      const { data, error } = await supabase.auth.signInAnonymously();
-      
-      if (error) {
-        console.error('❌ Erro login anônimo:', error.message);
-        return;
-      }
-      
-      console.log('✅ Login anônimo OK:', data.user.id);
-    } else {
-      console.log('✅ Sessão existe:', session.user.id);
-    }
-  } catch (error) {
-    console.error('⚠️ Erro auth:', error);
-  }
-}
-
-// Chamar ao carregar
-inicializarAuth();
+// A autenticação (login real com e-mail/senha) é controlada por js/app.js,
+// que escuta supabase.auth.onAuthStateChange e decide quando iniciar o app.
 
 // IMPORTANTE: EXPORTAR PARA APP.JS
 export default supabase;
