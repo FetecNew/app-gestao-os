@@ -39,6 +39,97 @@
   fill: #16321F;
 }
 
+/* ========== TELA DE LOGIN ========== */
+.tela-login {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--fetec-dark);
+}
+
+.login-card {
+  background: linear-gradient(135deg, var(--fetec-gray), var(--fetec-gray-light));
+  border: 1px solid var(--fetec-border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 0 40px rgba(0, 220, 65, 0.15);
+  text-align: center;
+}
+
+.login-card h1 {
+  color: var(--fetec-green-text);
+  font-size: 1.4em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.login-subtitulo {
+  display: block;
+  color: var(--fetec-gray-lighter);
+  font-size: 0.85em;
+  margin-bottom: 24px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.login-botao {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 12px 16px;
+}
+
+.login-erro {
+  display: none;
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.6);
+  color: #dc3545;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8em;
+}
+
+.login-erro.show {
+  display: block;
+}
+
+.login-sucesso {
+  display: none;
+  background: rgba(0, 220, 65, 0.12);
+  border: 1px solid rgba(0, 220, 65, 0.5);
+  color: var(--fetec-green-text);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8em;
+}
+
+.login-sucesso.show {
+  display: block;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  color: var(--fetec-green-text);
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  padding: 4px;
+  margin-top: 4px;
+  text-decoration: underline;
+}
+
 /* ========== RESET UNIVERSAL ========== */
 * {
   margin: 0;
@@ -59,6 +150,7 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  display: none; /* só aparece após confirmar login, via JS */
 }
 
 /* ========== HEADER ========== */
@@ -97,6 +189,249 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ========== MENU DE USUÁRIO ========== */
+.menu-usuario {
+  position: relative;
+}
+
+.btn-usuario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--fetec-green);
+  background: rgba(0, 220, 65, 0.1);
+  color: var(--fetec-white);
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-usuario:active {
+  background: rgba(0, 220, 65, 0.25);
+}
+
+.seta-usuario {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+.dropdown-usuario {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  background: linear-gradient(135deg, var(--fetec-gray), var(--fetec-gray-light));
+  border: 1px solid var(--fetec-border);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(0, 220, 65, 0.2);
+  z-index: 500;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.dropdown-usuario.active {
+  display: flex;
+}
+
+.dropdown-usuario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--fetec-border);
+}
+
+.dropdown-usuario-info strong {
+  color: var(--fetec-green-text);
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
+.dropdown-usuario-info span {
+  color: var(--fetec-gray-lighter);
+  font-size: 0.75em;
+}
+
+.dropdown-usuario button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--fetec-white);
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-usuario button:hover,
+.dropdown-usuario button:active {
+  background: rgba(0, 220, 65, 0.1);
+}
+
+.dropdown-usuario-sair {
+  color: #dc3545 !important;
+}
+
+.dropdown-usuario-sair:hover,
+.dropdown-usuario-sair:active {
+  background: rgba(220, 53, 69, 0.1) !important;
+}
+
+/* ========== MENU PRINCIPAL (navegação de seções) ========== */
+.menu-principal {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--fetec-border);
+}
+
+.menu-item {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 16px;
+  color: var(--fetec-gray-lighter);
+  font-size: 0.85em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.menu-item:hover {
+  color: var(--fetec-green-text);
+}
+
+.menu-item.active {
+  color: var(--fetec-green-text);
+  border-bottom-color: var(--fetec-green);
+}
+
+/* Elementos visíveis só para o perfil Administrador (menus, valores, faturamento) */
+body.perfil-tecnico .somente-admin {
+  display: none !important;
+}
+
+.card-header-acoes {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.secao-em-construcao {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--fetec-gray-lighter);
+}
+
+.secao-em-construcao-icone {
+  font-size: 2.5em;
+  margin-bottom: 8px;
+}
+
+.secao-em-construcao h2 {
+  color: var(--fetec-green-text);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ========== CATÁLOGOS (Administração) ========== */
+.catalogos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.catalogo-coluna h3 {
+  font-size: 0.9em;
+  color: var(--fetec-green-text);
+  margin-bottom: 8px;
+}
+
+.catalogo-add {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.catalogo-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 2px solid rgba(0, 220, 65, 0.3);
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-family: inherit;
+  background: var(--fetec-gray-light);
+  color: var(--fetec-white);
+}
+
+.catalogo-add input:focus {
+  outline: none;
+  border-color: var(--fetec-green);
+}
+
+.catalogo-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--fetec-border);
+  border-radius: 8px;
+}
+
+.catalogo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.85em;
+  border-bottom: 1px solid var(--fetec-border);
+}
+
+.catalogo-item:last-child {
+  border-bottom: none;
+}
+
+.catalogo-item.catalogo-vazio {
+  justify-content: center;
+  color: var(--fetec-gray-lighter);
+}
+
+.catalogo-item-remover {
+  background: none;
+  border: none;
+  color: var(--fetec-gray-lighter);
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.catalogo-item-remover:active {
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.15);
+}
+
+@media (max-width: 720px) {
+  .catalogos-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .btn-tema {

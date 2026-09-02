@@ -170,65 +170,9 @@ export function desmascararMoeda(valor) {
   return (parseInt(digitos || '0', 10)) / 100;
 }
 
-// ========== CATÁLOGOS EDITÁVEIS (Aparelho, Marca, Campanha) ==========
-// Persistidos no localStorage do navegador
-
-const CATALOGOS_PADRAO = {
-  catalogo_aparelhos: ['Geladeira', 'Fogão', 'Máquina de Lavar', 'Micro-ondas', 'Ar-condicionado', 'Freezer'],
-  catalogo_marcas: ['Brastemp', 'Consul', 'Electrolux', 'LG', 'Samsung', 'Philco'],
-  catalogo_campanhas: ['01', '02']
-};
-
-function obterCatalogo(chave) {
-  try {
-    const salvo = localStorage.getItem(chave);
-    if (salvo) return JSON.parse(salvo);
-  } catch {
-    // ignora e usa padrão
-  }
-  return [...(CATALOGOS_PADRAO[chave] || [])];
-}
-
-function salvarCatalogo(chave, itens) {
-  localStorage.setItem(chave, JSON.stringify(itens));
-}
-
-function adicionarItemCatalogo(chave, item) {
-  const valor = (item || '').trim();
-  if (!valor) return null;
-
-  const itens = obterCatalogo(chave);
-  const existente = itens.find(i => i.toLowerCase() === valor.toLowerCase());
-  if (existente) return existente;
-
-  itens.push(valor);
-  salvarCatalogo(chave, itens);
-  return valor;
-}
-
-export function obterAparelhos() {
-  return obterCatalogo('catalogo_aparelhos');
-}
-
-export function adicionarAparelho(nome) {
-  return adicionarItemCatalogo('catalogo_aparelhos', nome);
-}
-
-export function obterMarcas() {
-  return obterCatalogo('catalogo_marcas');
-}
-
-export function adicionarMarca(nome) {
-  return adicionarItemCatalogo('catalogo_marcas', nome);
-}
-
-export function obterCampanhas() {
-  return obterCatalogo('catalogo_campanhas');
-}
-
-export function adicionarCampanha(nome) {
-  return adicionarItemCatalogo('catalogo_campanhas', nome);
-}
+// Catálogos editáveis (Aparelho, Marca, Campanha): agora centralizados no
+// banco (tabela catalogos) e geridos em js/app.js — ver carregarCatalogos(),
+// adicionarItemCatalogo() e a seção Administração.
 
 // Copiar para Área de Transferência
 export function copiarParaClipboard(texto) {

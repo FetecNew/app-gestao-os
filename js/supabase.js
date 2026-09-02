@@ -16,35 +16,24 @@ const PREFIXO_TABELA = AMBIENTE_LOCAL ? 'teste_' : '';
 export const TABELA_ORDENS_SERVICO = `${PREFIXO_TABELA}ordens_servico`;
 export const TABELA_TECNICO_PADRAO = `${PREFIXO_TABELA}tecnico_padrao`;
 
+// View de LEITURA das OS: mascara (null) valor_servico/valor_pecas para quem não é
+// administrador — a proteção é feita no banco (view + revoke de coluna + trigger),
+// não apenas na UI. Usar esta constante para SELECT; INSERT/UPDATE/DELETE continuam
+// em TABELA_ORDENS_SERVICO.
+export const TABELA_ORDENS_SERVICO_LEITURA = `${PREFIXO_TABELA}ordens_servico_leitura`;
+
+// Catálogos (Aparelho/Marca/Campanha) e dados da empresa: centralizados no
+// banco, compartilhados entre todos os usuários (antes viviam só no
+// localStorage de cada navegador).
+export const TABELA_CATALOGOS = `${PREFIXO_TABELA}catalogos`;
+export const TABELA_CONFIG_EMPRESA = `${PREFIXO_TABELA}config_empresa`;
+
 if (AMBIENTE_LOCAL) {
   console.log(`🧪 Ambiente local — usando tabelas de teste: ${TABELA_ORDENS_SERVICO}, ${TABELA_TECNICO_PADRAO}`);
 }
 
-// Inicializar autenticação anônima ao carregar
-async function inicializarAuth() {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      console.log('📝 Iniciando login anônimo...');
-      const { data, error } = await supabase.auth.signInAnonymously();
-      
-      if (error) {
-        console.error('❌ Erro login anônimo:', error.message);
-        return;
-      }
-      
-      console.log('✅ Login anônimo OK:', data.user.id);
-    } else {
-      console.log('✅ Sessão existe:', session.user.id);
-    }
-  } catch (error) {
-    console.error('⚠️ Erro auth:', error);
-  }
-}
-
-// Chamar ao carregar
-inicializarAuth();
+// A autenticação (login real com e-mail/senha) é controlada por js/app.js,
+// que escuta supabase.auth.onAuthStateChange e decide quando iniciar o app.
 
 // IMPORTANTE: EXPORTAR PARA APP.JS
 export default supabase;

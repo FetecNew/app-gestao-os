@@ -20,14 +20,85 @@
   </script>
 </head>
 <body>
-  <div class="container">
-    
+  <!-- ========== TELA DE LOGIN ========== -->
+  <div class="tela-login" id="telaLogin">
+    <div class="login-card">
+
+      <!-- Estado 1: login normal -->
+      <div id="blocoLogin">
+        <h1>⚙ Gestão de OS</h1>
+        <span class="login-subtitulo">Faça login para continuar</span>
+
+        <form onsubmit="event.preventDefault(); fazerLogin();">
+          <div class="form-group">
+            <label>📧 E-mail</label>
+            <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>🔒 Senha</label>
+            <input type="password" id="loginSenha" required placeholder="Sua senha" autocomplete="current-password">
+          </div>
+
+          <div id="loginErro" class="login-erro"></div>
+
+          <button type="submit" class="btn btn-primary login-botao" id="btnFazerLogin">Entrar</button>
+          <button type="button" class="login-link" onclick="mostrarEsqueciSenha()">Esqueci minha senha</button>
+        </form>
+      </div>
+
+      <!-- Estado 2: pedir link de recuperação por e-mail -->
+      <div id="blocoEsqueciSenha" style="display: none;">
+        <h1>🔑 Recuperar Senha</h1>
+        <span class="login-subtitulo">Informe seu e-mail para receber o link</span>
+
+        <form onsubmit="event.preventDefault(); confirmarEsqueciSenha();">
+          <div class="form-group">
+            <label>📧 E-mail</label>
+            <input type="email" id="recuperarEmail" required placeholder="seu@email.com">
+          </div>
+
+          <div id="recuperarErro" class="login-erro"></div>
+          <div id="recuperarSucesso" class="login-sucesso"></div>
+
+          <button type="submit" class="btn btn-primary login-botao" id="btnRecuperarSenha">Enviar link</button>
+          <button type="button" class="login-link" onclick="mostrarBlocoLogin()">← Voltar para o login</button>
+        </form>
+      </div>
+
+      <!-- Estado 3: definir nova senha (após clicar no link recebido por e-mail) -->
+      <div id="blocoNovaSenhaRecuperacao" style="display: none;">
+        <h1>🔑 Definir Nova Senha</h1>
+        <span class="login-subtitulo">Escolha uma nova senha para sua conta</span>
+
+        <form onsubmit="event.preventDefault(); confirmarNovaSenhaRecuperacao();">
+          <div class="form-group">
+            <label>🔑 Nova Senha</label>
+            <input type="password" id="recuperarNovaSenha" required minlength="6" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="form-group">
+            <label>🔑 Confirmar Nova Senha</label>
+            <input type="password" id="recuperarConfirmarSenha" required minlength="6">
+          </div>
+
+          <div id="recuperarNovaSenhaErro" class="login-erro"></div>
+
+          <button type="submit" class="btn btn-primary login-botao" id="btnDefinirNovaSenha">Salvar nova senha</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container" id="appPrincipal">
+
     <!-- ========== HEADER ========== -->
     <div class="header">
       <div>
 
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-          <svg class="logo-fetec" width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));" role="img" aria-label="FETEC Logo">
+          <!-- Logo customizada (URL configurada em Administração > Dados da Empresa). -->
+          <img id="logoEmpresaCustom" class="logo-fetec" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));" alt="Logo da empresa" hidden>
+          <svg id="logoEmpresaPadrao" class="logo-fetec" width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 220, 65, 0.5));" role="img" aria-label="FETEC Logo">
             <defs>
               <style>
                 .fetec-gear-outer { fill: none; stroke: #00DC41; stroke-width: 1.5; }
@@ -68,10 +139,36 @@
       </div>
       <div class="header-actions">
         <button class="btn btn-tema" id="btnAlternarTema" onclick="alternarTema()" title="Alternar tema claro/escuro">🌙</button>
-        <button class="btn btn-outline" onclick="exportarCSV()" title="Exportar dados em CSV">📊 Exportar</button>
-        <button class="btn btn-primary" onclick="abrirNovaOS()" title="Criar nova ordem de serviço">➕ Nova OS</button>
+
+        <div class="menu-usuario">
+          <button class="btn-usuario" onclick="alternarMenuUsuario()" title="Menu do usuário">
+            <span>👤</span>
+            <span id="emailUsuarioLogado">...</span>
+            <span class="seta-usuario">▾</span>
+          </button>
+          <div class="dropdown-usuario" id="dropdownUsuario">
+            <div class="dropdown-usuario-info">
+              <strong id="dropdownUsuarioNome">—</strong>
+              <span id="dropdownUsuarioEmail">—</span>
+              <span id="dropdownUsuarioCriadoEm">—</span>
+            </div>
+            <button type="button" onclick="fecharMenuUsuario(); abrirModalSenha();">🔑 Trocar Senha</button>
+            <button type="button" class="dropdown-usuario-sair" onclick="fazerLogout()">🚪 Sair</button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- ========== MENU PRINCIPAL ========== -->
+    <nav class="menu-principal">
+      <button type="button" class="menu-item active" onclick="mostrarSecao('os')">📋 Ordens de Serviço</button>
+      <button type="button" class="menu-item somente-admin" onclick="mostrarSecao('usuarios')">👥 Usuários</button>
+      <button type="button" class="menu-item somente-admin" onclick="mostrarSecao('relatorios')">📊 Relatórios</button>
+      <button type="button" class="menu-item somente-admin" onclick="mostrarSecao('admin')">⚙️ Administração</button>
+    </nav>
+
+    <!-- ========== SEÇÃO: ORDENS DE SERVIÇO ========== -->
+    <section id="secaoOs" class="secao-conteudo">
 
     <!-- ========== ESTATÍSTICAS ========== -->
     <div class="stats-grid">
@@ -95,7 +192,7 @@
         <div class="label">Desistência</div>
         <div class="number" id="sDesistencia">0</div>
       </div>
-      <div class="stat-card teal">
+      <div class="stat-card teal somente-admin">
         <div class="label">Faturamento</div>
         <div class="number" id="sFaturamento">R$ 0</div>
       </div>
@@ -105,6 +202,10 @@
     <div class="card">
       <div class="card-header">
         <h2>📋 Ordens de Serviço</h2>
+        <div class="card-header-acoes">
+          <button class="btn btn-outline btn-sm" onclick="exportarCSV()" title="Exportar dados em CSV">📊 Exportar</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirNovaOS()" title="Criar nova ordem de serviço">➕ Nova OS</button>
+        </div>
         <div class="filters-bar">
           <div class="busca-com-dica">
             <input type="search" id="busca" placeholder="🔎 Buscar cliente, OS, aparelho ou status..." onkeyup="renderizar()" title="Dica: separe por vírgula para buscar vários itens ao mesmo tempo. Ex: visita, garantia">
@@ -124,7 +225,7 @@
                 <th class="th-ordenavel" onclick="alternarOrdenacao('data')" title="Clique para ordenar por data">Data <span id="iconeOrdenacaoData">↕️</span></th>
                 <th class="th-ordenavel" onclick="alternarOrdenacao('cliente')" title="Clique para ordenar por cliente">Cliente <span id="iconeOrdenacaoCliente">↕️</span></th>
                 <th>Aparelho</th>
-                <th>Valor</th>
+                <th class="somente-admin">Valor</th>
                 <th>Período</th>
                 <th>Campanha</th>
                 <th class="th-ordenavel" onclick="alternarOrdenacao('status')" title="Clique para ordenar por status">Status <span id="iconeOrdenacaoStatus">↕️</span></th>
@@ -137,6 +238,168 @@
         </div>
       </div>
     </div>
+
+    </section>
+
+    <!-- ========== SEÇÃO: USUÁRIOS ========== -->
+    <section id="secaoUsuarios" class="secao-conteudo" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2>👥 Usuários do Sistema</h2>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalNovoUsuario()" title="Cadastrar novo usuário">➕ Novo Usuário</button>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Perfil</th>
+                  <th>Criado em</th>
+                  <th>Último acesso</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyUsuarios">
+                <tr><td colspan="6" style="text-align:center; padding:20px; color:#999;">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SEÇÃO: RELATÓRIOS ========== -->
+    <section id="secaoRelatorios" class="secao-conteudo" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2>📊 Relatórios</h2>
+          <div class="filters-bar">
+            <label class="filtro-data-label">De <input type="date" id="relFiltroInicio" onchange="renderizarRelatorios()"></label>
+            <label class="filtro-data-label">Até <input type="date" id="relFiltroFim" onchange="renderizarRelatorios()"></label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="limparFiltroRelatorio()" title="Limpar filtro de período">✕ Limpar período</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-card teal">
+              <div class="label">Faturamento no período</div>
+              <div class="number" id="relFaturamentoTotal">R$ 0</div>
+            </div>
+            <div class="stat-card blue">
+              <div class="label">OS no período</div>
+              <div class="number" id="relTotalOS">0</div>
+            </div>
+            <div class="stat-card green">
+              <div class="label">Atendidas</div>
+              <div class="number" id="relAtendidas">0</div>
+            </div>
+            <div class="stat-card orange">
+              <div class="label">Pendentes</div>
+              <div class="number" id="relPendentes">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Faturamento por status</h2></div>
+        <div class="card-body">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Status</th><th>Qtd. OS</th><th>Faturamento</th></tr></thead>
+              <tbody id="tbodyRelatorioStatus"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Faturamento por campanha</h2></div>
+        <div class="card-body">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Campanha</th><th>Qtd. OS</th><th>Faturamento</th></tr></thead>
+              <tbody id="tbodyRelatorioCampanha"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SEÇÃO: ADMINISTRAÇÃO ========== -->
+    <section id="secaoAdmin" class="secao-conteudo" style="display: none;">
+      <div class="card">
+        <div class="card-header"><h2>🏢 Dados da Empresa</h2></div>
+        <div class="card-body">
+          <form onsubmit="event.preventDefault(); salvarConfigEmpresa();">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nome da empresa</label>
+                <input type="text" id="cfgNomeEmpresa" maxlength="40" placeholder="FETEC">
+              </div>
+              <div class="form-group">
+                <label>Subtítulo</label>
+                <input type="text" id="cfgSubtitulo" maxlength="40" placeholder="Assistência Técnica">
+              </div>
+              <div class="form-group full-width">
+                <label>URL da logo (opcional)</label>
+                <input type="url" id="cfgLogoUrl" placeholder="https://... (deixe em branco para usar a logo padrão)">
+                <small style="opacity:.7; font-weight:400; text-transform:none;">Aceita link de compartilhamento do Google Drive — é convertido automaticamente ao salvar.</small>
+              </div>
+              <div class="form-group">
+                <label>Telefone de contato</label>
+                <input type="tel" id="cfgTelefone" inputmode="numeric" placeholder="(00) 0000-0000" oninput="this.value = mascararTelefone(this.value)">
+              </div>
+              <div class="form-group">
+                <label>WhatsApp de contato</label>
+                <input type="tel" id="cfgWhatsapp" inputmode="numeric" placeholder="(00) 00000-0000" oninput="this.value = mascararTelefone(this.value)">
+              </div>
+              <div class="form-group full-width">
+                <label>Endereço</label>
+                <input type="text" id="cfgEndereco" placeholder="Rua, número, bairro, cidade">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>🗂️ Catálogos</h2></div>
+        <div class="card-body">
+          <div class="catalogos-grid">
+            <div class="catalogo-coluna">
+              <h3>🔧 Aparelhos</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoAparelho" placeholder="Novo aparelho...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('aparelho')" title="Adicionar aparelho">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoAparelho"></ul>
+            </div>
+            <div class="catalogo-coluna">
+              <h3>🏷️ Marcas</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoMarca" placeholder="Nova marca...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('marca')" title="Adicionar marca">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoMarca"></ul>
+            </div>
+            <div class="catalogo-coluna">
+              <h3>📢 Campanhas</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoCampanha" placeholder="Nova campanha...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('campanha')" title="Adicionar campanha">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoCampanha"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
   </div>
 
@@ -211,11 +474,11 @@
           </div>
           
           <!-- Linha 6 -->
-          <div class="form-group">
+          <div class="form-group somente-admin">
             <label>💵 Valor Serviço (R$)</label>
             <input type="text" id="fVS" inputmode="numeric" placeholder="R$ 0,00" oninput="this.value = mascararMoeda(this.value)">
           </div>
-          <div class="form-group">
+          <div class="form-group somente-admin">
             <label>🛠️ Valor Peças (R$)</label>
             <input type="text" id="fVP" inputmode="numeric" placeholder="R$ 0,00" oninput="this.value = mascararMoeda(this.value)">
           </div>
@@ -322,6 +585,117 @@
         <button type="button" class="btn btn-outline" onclick="fecharModalConfirmar()">✕ Cancelar</button>
         <button type="button" class="btn btn-danger" id="btnConfirmarAcao" onclick="executarAcaoConfirmada()">🗑️ Excluir</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL TROCAR SENHA ========== -->
+  <div class="modal-overlay" id="modalSenhaFundo">
+    <div class="modal modal-pequeno">
+      <button class="modal-close" onclick="fecharModalSenha()">✕</button>
+      <h2>🔑 Trocar Senha</h2>
+
+      <form onsubmit="event.preventDefault(); confirmarTrocaSenha();">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>🔒 Senha Atual</label>
+            <input type="password" id="senhaAtual" required autocomplete="current-password">
+          </div>
+          <div class="form-group full-width">
+            <label>🔑 Nova Senha</label>
+            <input type="password" id="novaSenha" required minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="form-group full-width">
+            <label>🔑 Confirmar Nova Senha</label>
+            <input type="password" id="confirmarNovaSenha" required minlength="6" autocomplete="new-password">
+          </div>
+
+          <div id="senhaErro" class="login-erro full-width"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="fecharModalSenha()">✕ Cancelar</button>
+            <button type="submit" class="btn btn-success" id="btnSalvarSenha">✓ Salvar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL NOVO USUÁRIO ========== -->
+  <div class="modal-overlay" id="modalNovoUsuarioFundo">
+    <div class="modal modal-pequeno">
+      <button class="modal-close" onclick="fecharModalNovoUsuario()">✕</button>
+      <h2>👥 Cadastrar Novo Usuário</h2>
+
+      <form onsubmit="event.preventDefault(); confirmarNovoUsuario();">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>👤 Nome de Usuário</label>
+            <input type="text" id="novoUsuarioNome" required placeholder="Nome do colaborador">
+          </div>
+          <div class="form-group full-width">
+            <label>📧 E-mail</label>
+            <input type="email" id="novoUsuarioEmail" required placeholder="colaborador@email.com">
+          </div>
+          <div class="form-group full-width">
+            <label>🛡️ Perfil</label>
+            <select id="novoUsuarioPerfil" required>
+              <option value="tecnico">Técnico</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>🔑 Senha Temporária</label>
+            <input type="password" id="novoUsuarioSenha" required minlength="6" placeholder="Mínimo 6 caracteres">
+          </div>
+
+          <div id="novoUsuarioErro" class="login-erro full-width"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="fecharModalNovoUsuario()">✕ Cancelar</button>
+            <button type="submit" class="btn btn-success" id="btnCriarUsuario">✓ Cadastrar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL EDITAR USUÁRIO ========== -->
+  <div class="modal-overlay" id="modalEditarUsuarioFundo">
+    <div class="modal modal-pequeno">
+      <button class="modal-close" onclick="fecharModalEditarUsuario()">✕</button>
+      <h2>✏️ Editar Usuário</h2>
+
+      <form onsubmit="event.preventDefault(); confirmarEditarUsuario();">
+        <input type="hidden" id="editarUsuarioId" value="">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>📧 E-mail</label>
+            <input type="email" id="editarUsuarioEmail" disabled>
+          </div>
+          <div class="form-group full-width">
+            <label>👤 Nome de Usuário</label>
+            <input type="text" id="editarUsuarioNome" required placeholder="Nome do colaborador">
+          </div>
+          <div class="form-group full-width">
+            <label>🛡️ Perfil</label>
+            <select id="editarUsuarioPerfil" required>
+              <option value="tecnico">Técnico</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>🔑 Nova Senha (opcional)</label>
+            <input type="password" id="editarUsuarioSenha" minlength="6" placeholder="Deixe em branco para não alterar">
+          </div>
+
+          <div id="editarUsuarioErro" class="login-erro full-width"></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="fecharModalEditarUsuario()">✕ Cancelar</button>
+            <button type="submit" class="btn btn-success" id="btnSalvarEditarUsuario">✓ Salvar</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
