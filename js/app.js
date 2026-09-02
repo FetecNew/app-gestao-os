@@ -590,11 +590,27 @@ function aplicarConfigEmpresaNaUI() {
   }
 }
 
+// Um link de compartilhamento do Google Drive (.../file/d/ID/view ou
+// ...?id=ID) abre uma página HTML de visualização, não a imagem em si — um
+// <img> não consegue exibir isso. Converte automaticamente para o formato
+// que devolve a imagem diretamente, para o usuário poder colar o link comum.
+function normalizarUrlLogo(url) {
+  if (!url) return url;
+
+  const match =
+    url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+    url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
+    url.match(/drive\.google\.com\/uc\?.*[?&]id=([a-zA-Z0-9_-]+)/);
+
+  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  return url;
+}
+
 async function salvarConfigEmpresa() {
   const dados = {
     nome_empresa: document.getElementById('cfgNomeEmpresa').value.trim() || 'FETEC',
     subtitulo: document.getElementById('cfgSubtitulo').value.trim() || 'Assistência Técnica',
-    logo_url: document.getElementById('cfgLogoUrl').value.trim(),
+    logo_url: normalizarUrlLogo(document.getElementById('cfgLogoUrl').value.trim()),
     telefone_contato: document.getElementById('cfgTelefone').value.trim(),
     whatsapp_contato: document.getElementById('cfgWhatsapp').value.trim(),
     endereco: document.getElementById('cfgEndereco').value.trim()
@@ -610,6 +626,9 @@ async function salvarConfigEmpresa() {
 
     configEmpresa = { ...configEmpresa, ...dados };
     aplicarConfigEmpresaNaUI();
+    // Mostra a URL já convertida (ex.: link do Drive normalizado), para o
+    // admin ver exatamente o que foi salvo.
+    document.getElementById('cfgLogoUrl').value = configEmpresa.logo_url || '';
     exibirToast('✅ Dados da empresa atualizados!');
   } catch (err) {
     console.error('❌ Erro ao salvar dados da empresa:', err);
