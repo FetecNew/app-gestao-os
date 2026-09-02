@@ -22,6 +22,12 @@ export const TABELA_TECNICO_PADRAO = `${PREFIXO_TABELA}tecnico_padrao`;
 // em TABELA_ORDENS_SERVICO.
 export const TABELA_ORDENS_SERVICO_LEITURA = `${PREFIXO_TABELA}ordens_servico_leitura`;
 
+// Catálogos (Aparelho/Marca/Campanha) e dados da empresa: centralizados no
+// banco, compartilhados entre todos os usuários (antes viviam só no
+// localStorage de cada navegador).
+export const TABELA_CATALOGOS = `${PREFIXO_TABELA}catalogos`;
+export const TABELA_CONFIG_EMPRESA = `${PREFIXO_TABELA}config_empresa`;
+
 if (AMBIENTE_LOCAL) {
   console.log(`🧪 Ambiente local — usando tabelas de teste: ${TABELA_ORDENS_SERVICO}, ${TABELA_TECNICO_PADRAO}`);
 }

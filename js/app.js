@@ -1,6 +1,12 @@
 // 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
 
-import supabase, { TABELA_ORDENS_SERVICO, TABELA_ORDENS_SERVICO_LEITURA, TABELA_TECNICO_PADRAO } from './supabase.js';
+import supabase, {
+  TABELA_ORDENS_SERVICO,
+  TABELA_ORDENS_SERVICO_LEITURA,
+  TABELA_TECNICO_PADRAO,
+  TABELA_CATALOGOS,
+  TABELA_CONFIG_EMPRESA
+} from './supabase.js';
 import {
   formatarData,
   formatarMoeda,
@@ -15,13 +21,7 @@ import {
   mascararTelefone,
   mascararCEP,
   mascararMoeda,
-  desmascararMoeda,
-  obterAparelhos,
-  adicionarAparelho,
-  obterMarcas,
-  adicionarMarca,
-  obterCampanhas,
-  adicionarCampanha
+  desmascararMoeda
 } from './utils.js';
 
 // Ícone oficial do WhatsApp (glifo da marca), em vez de emoji genérico de celular
@@ -33,6 +33,78 @@ let lista_filtrada_atual = [];
 let indice_edicao = -1;
 let tecnico_padrao = null;
 let ehAdminAtual = false; // define visibilidade de valores/menus restritos a administradores
+
+// ========== CATÁLOGOS (Aparelho, Marca, Campanha) ==========
+// Centralizados no banco (tabela catalogos) e compartilhados entre todos os
+// usuários — antes viviam separadamente no localStorage de cada navegador.
+let catalogoAparelhos = [];
+let catalogoMarcas = [];
+let catalogoCampanhas = [];
+
+// ========== DADOS DA EMPRESA ==========
+// Config editável só por administradores (tela Administração), lida por
+// todos os usuários autenticados. Objeto abaixo traz os valores padrão até
+// a config carregar do banco.
+let configEmpresa = {
+  nome_empresa: 'FETEC',
+  subtitulo: 'Assistência Técnica',
+  telefone_contato: '',
+  whatsapp_contato: '',
+  endereco: ''
+};
+
+function obterCatalogo(tipo) {
+  if (tipo === 'aparelho') return catalogoAparelhos;
+  if (tipo === 'marca') return catalogoMarcas;
+  return catalogoCampanhas;
+}
+
+function estaNoCatalogo(tipo, valor) {
+  return obterCatalogo(tipo).some(i => i.toLowerCase() === valor.toLowerCase());
+}
+
+function adicionarNoCatalogoLocal(tipo, valor) {
+  const itens = obterCatalogo(tipo);
+  itens.push(valor);
+  itens.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+async function carregarCatalogos() {
+  try {
+    const { data, error } = await supabase
+      .from(TABELA_CATALOGOS)
+      .select('tipo, valor')
+      .order('valor', { ascending: true });
+
+    if (error) throw error;
+
+    catalogoAparelhos = (data || []).filter(i => i.tipo === 'aparelho').map(i => i.valor);
+    catalogoMarcas = (data || []).filter(i => i.tipo === 'marca').map(i => i.valor);
+    catalogoCampanhas = (data || []).filter(i => i.tipo === 'campanha').map(i => i.valor);
+  } catch (err) {
+    console.error('❌ Erro ao carregar catálogos:', err);
+  }
+}
+
+// Grava um item novo no banco (usado tanto pelo "+" do formulário de OS
+// quanto pela tela de Administração). Ignora erro de duplicado (23505),
+// pois o item já existe para outro usuário/aba.
+async function persistirItemCatalogo(tipo, valor) {
+  const { error } = await supabase.from(TABELA_CATALOGOS).insert([{ tipo, valor }]);
+  if (error && error.code !== '23505') {
+    console.error('❌ Erro ao salvar item de catálogo:', error);
+    exibirToast('Erro ao salvar item de catálogo', 'erro');
+  }
+}
+
+// Garante que um valor legado/customizado de uma OS já existente apareça
+// selecionado no combo mesmo que ainda não esteja no catálogo — sem travar
+// a UI (persiste em segundo plano).
+function garantirOpcaoCombo(tipo, valor) {
+  if (!valor || estaNoCatalogo(tipo, valor)) return;
+  adicionarNoCatalogoLocal(tipo, valor);
+  persistirItemCatalogo(tipo, valor);
+}
 
 // ========== COMBOS EDITÁVEIS (Aparelho, Marca, Campanha) ==========
 function preencherSelect(id, itens, valorSelecionado) {
@@ -46,16 +118,16 @@ function preencherSelect(id, itens, valorSelecionado) {
 }
 
 function atualizarCombos(valores = {}) {
-  preencherSelect('fAparelho', obterAparelhos(), valores.aparelho);
-  preencherSelect('fMarca', obterMarcas(), valores.marca);
-  preencherSelect('fCampanha', obterCampanhas(), valores.campanha);
+  preencherSelect('fAparelho', catalogoAparelhos, valores.aparelho);
+  preencherSelect('fMarca', catalogoMarcas, valores.marca);
+  preencherSelect('fCampanha', catalogoCampanhas, valores.campanha);
 }
 
 // ========== MODAL ADICIONAR ITEM (Aparelho/Marca/Campanha) ==========
 const CONFIG_NOVO_ITEM = {
-  aparelho: { titulo: '➕ Novo Aparelho', label: '🔧 Nome do Aparelho', obter: obterAparelhos, adicionar: adicionarAparelho, selectId: 'fAparelho' },
-  marca: { titulo: '➕ Nova Marca', label: '🏷️ Nome da Marca', obter: obterMarcas, adicionar: adicionarMarca, selectId: 'fMarca' },
-  campanha: { titulo: '➕ Nova Campanha', label: '📢 Nome/Código da Campanha', obter: obterCampanhas, adicionar: adicionarCampanha, selectId: 'fCampanha' }
+  aparelho: { titulo: '➕ Novo Aparelho', label: '🔧 Nome do Aparelho', selectId: 'fAparelho' },
+  marca: { titulo: '➕ Nova Marca', label: '🏷️ Nome da Marca', selectId: 'fMarca' },
+  campanha: { titulo: '➕ Nova Campanha', label: '📢 Nome/Código da Campanha', selectId: 'fCampanha' }
 };
 
 function abrirModalNovoItem(tipo) {
@@ -72,13 +144,16 @@ function fecharModalNovoItem() {
   document.getElementById('modalNovoItemFundo').classList.remove('active');
 }
 
-function confirmarNovoItem() {
+async function confirmarNovoItem() {
   const tipo = document.getElementById('fNovoItemTipo').value;
   const config = CONFIG_NOVO_ITEM[tipo];
   const nome = document.getElementById('fNovoItemValor').value.trim();
 
-  const salvo = config.adicionar(nome);
-  if (salvo) preencherSelect(config.selectId, config.obter(), salvo);
+  if (nome && !estaNoCatalogo(tipo, nome)) {
+    adicionarNoCatalogoLocal(tipo, nome);
+    await persistirItemCatalogo(tipo, nome);
+  }
+  if (nome) preencherSelect(config.selectId, obterCatalogo(tipo), nome);
 
   fecharModalNovoItem();
 }
@@ -108,8 +183,12 @@ function executarAcaoConfirmada() {
 async function inicializar() {
   console.log('🚀 Iniciando aplicação v2...');
   atualizarIconeTema(document.documentElement.getAttribute('data-theme') || 'dark');
-  await carregarOS();
-  await carregarTecnicoPadrao();
+  await Promise.all([
+    carregarOS(),
+    carregarTecnicoPadrao(),
+    carregarCatalogos(),
+    carregarConfigEmpresa()
+  ]);
   renderizar();
 }
 
@@ -451,6 +530,64 @@ async function carregarTecnicoPadrao() {
   }
 }
 
+// ========== DADOS DA EMPRESA ==========
+async function carregarConfigEmpresa() {
+  try {
+    const { data, error } = await supabase
+      .from(TABELA_CONFIG_EMPRESA)
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (data) configEmpresa = data;
+
+    aplicarConfigEmpresaNaUI();
+  } catch (err) {
+    console.error('❌ Erro ao carregar dados da empresa:', err);
+  }
+}
+
+// Aplica nome/subtítulo configurados no título da página e no texto da logo,
+// mantendo "FETEC" / "Assistência Técnica" como visual padrão se vazio.
+function aplicarConfigEmpresaNaUI() {
+  const nome = configEmpresa.nome_empresa || 'FETEC';
+  const subtitulo = configEmpresa.subtitulo || 'Assistência Técnica';
+
+  document.title = `Gestão de OS ${nome} - ${subtitulo}`;
+
+  const textoLogo = document.querySelector('.logo-fetec .fetec-text');
+  const textoSubtitulo = document.querySelector('.logo-fetec .fetec-subtitle');
+  if (textoLogo) textoLogo.textContent = nome;
+  if (textoSubtitulo) textoSubtitulo.textContent = subtitulo.toUpperCase();
+}
+
+async function salvarConfigEmpresa() {
+  const dados = {
+    nome_empresa: document.getElementById('cfgNomeEmpresa').value.trim() || 'FETEC',
+    subtitulo: document.getElementById('cfgSubtitulo').value.trim() || 'Assistência Técnica',
+    telefone_contato: document.getElementById('cfgTelefone').value.trim(),
+    whatsapp_contato: document.getElementById('cfgWhatsapp').value.trim(),
+    endereco: document.getElementById('cfgEndereco').value.trim()
+  };
+
+  try {
+    const { error } = await supabase
+      .from(TABELA_CONFIG_EMPRESA)
+      .update(dados)
+      .eq('id', 1);
+
+    if (error) throw error;
+
+    configEmpresa = { ...configEmpresa, ...dados };
+    aplicarConfigEmpresaNaUI();
+    exibirToast('✅ Dados da empresa atualizados!');
+  } catch (err) {
+    console.error('❌ Erro ao salvar dados da empresa:', err);
+    exibirToast('Erro ao salvar dados da empresa', 'erro');
+  }
+}
+
 // ========== CARREGAR DADOS DO SUPABASE ==========
 async function carregarOS() {
   try {
@@ -614,9 +751,9 @@ function editarOS(id) {
 function preencherForm(os) {
   // Garante que os selects já tenham as opções (inclusive itens legados que
   // não estejam no catálogo) antes de atribuir o valor selecionado.
-  if (os.aparelho) adicionarAparelho(os.aparelho);
-  if (os.marca) adicionarMarca(os.marca);
-  if (os.campanha) adicionarCampanha(os.campanha);
+  garantirOpcaoCombo('aparelho', os.aparelho);
+  garantirOpcaoCombo('marca', os.marca);
+  garantirOpcaoCombo('campanha', os.campanha);
   atualizarCombos({ aparelho: os.aparelho, marca: os.marca, campanha: os.campanha });
 
   document.getElementById('fNumeroOS').value = os.numero_os || '';
@@ -862,6 +999,145 @@ function mostrarSecao(nome) {
     usuariosJaCarregados = true;
     carregarUsuarios();
   }
+  if (nome === 'relatorios') renderizarRelatorios();
+  if (nome === 'admin') renderizarAdmin();
+}
+
+// ========== SEÇÃO RELATÓRIOS ==========
+function obterOSNoPeriodoRelatorio() {
+  const inicio = document.getElementById('relFiltroInicio')?.value || '';
+  const fim = document.getElementById('relFiltroFim')?.value || '';
+
+  return lista_os.filter(os => {
+    if (inicio && os.data_abertura < inicio) return false;
+    if (fim && os.data_abertura > fim) return false;
+    return true;
+  });
+}
+
+function limparFiltroRelatorio() {
+  document.getElementById('relFiltroInicio').value = '';
+  document.getElementById('relFiltroFim').value = '';
+  renderizarRelatorios();
+}
+
+function agruparRelatorio(lista, chaveDe) {
+  const grupos = {};
+  lista.forEach(os => {
+    const chave = chaveDe(os);
+    if (!grupos[chave]) grupos[chave] = { qtd: 0, total: 0 };
+    grupos[chave].qtd++;
+    grupos[chave].total += (os.valor_servico || 0) + (os.valor_pecas || 0);
+  });
+  return Object.entries(grupos).sort((a, b) => b[1].total - a[1].total);
+}
+
+function renderizarTabelaRelatorio(elementoId, grupos) {
+  const tbody = document.getElementById(elementoId);
+  tbody.innerHTML = grupos.length
+    ? grupos.map(([chave, r]) => `
+        <tr>
+          <td>${chave}</td>
+          <td>${r.qtd}</td>
+          <td>${formatarMoeda(r.total)}</td>
+        </tr>
+      `).join('')
+    : '<tr><td colspan="3" style="text-align:center; padding:16px; color:#999;">Nenhuma OS no período</td></tr>';
+}
+
+function renderizarRelatorios() {
+  const lista = obterOSNoPeriodoRelatorio();
+  const faturamentoTotal = lista.reduce((soma, os) => soma + (os.valor_servico || 0) + (os.valor_pecas || 0), 0);
+  const atendidas = lista.filter(os => os.atendido).length;
+
+  document.getElementById('relFaturamentoTotal').textContent = formatarMoeda(faturamentoTotal);
+  document.getElementById('relTotalOS').textContent = lista.length;
+  document.getElementById('relAtendidas').textContent = atendidas;
+  document.getElementById('relPendentes').textContent = lista.length - atendidas;
+
+  renderizarTabelaRelatorio('tbodyRelatorioStatus', agruparRelatorio(lista, os => os.status || '-'));
+  renderizarTabelaRelatorio('tbodyRelatorioCampanha', agruparRelatorio(lista, os => os.campanha || 'Sem campanha'));
+}
+
+// ========== SEÇÃO ADMINISTRAÇÃO ==========
+function elementoIdCatalogo(tipo) {
+  return tipo === 'aparelho' ? 'listaCatalogoAparelho' : tipo === 'marca' ? 'listaCatalogoMarca' : 'listaCatalogoCampanha';
+}
+
+function inputIdCatalogo(tipo) {
+  return tipo === 'aparelho' ? 'catNovoAparelho' : tipo === 'marca' ? 'catNovoMarca' : 'catNovoCampanha';
+}
+
+function renderizarAdmin() {
+  document.getElementById('cfgNomeEmpresa').value = configEmpresa.nome_empresa || '';
+  document.getElementById('cfgSubtitulo').value = configEmpresa.subtitulo || '';
+  document.getElementById('cfgTelefone').value = mascararTelefone(configEmpresa.telefone_contato || '');
+  document.getElementById('cfgWhatsapp').value = mascararTelefone(configEmpresa.whatsapp_contato || '');
+  document.getElementById('cfgEndereco').value = configEmpresa.endereco || '';
+
+  renderizarListaCatalogoAdmin('aparelho');
+  renderizarListaCatalogoAdmin('marca');
+  renderizarListaCatalogoAdmin('campanha');
+}
+
+function renderizarListaCatalogoAdmin(tipo) {
+  const lista = document.getElementById(elementoIdCatalogo(tipo));
+  const itens = obterCatalogo(tipo);
+
+  lista.innerHTML = itens.length
+    ? itens.map((item, indice) => `
+        <li class="catalogo-item">
+          <span>${item}</span>
+          <button type="button" class="catalogo-item-remover" onclick="removerItemCatalogo('${tipo}', ${indice})" title="Remover ${item}">✕</button>
+        </li>
+      `).join('')
+    : '<li class="catalogo-item catalogo-vazio">Nenhum item cadastrado</li>';
+}
+
+async function adicionarItemAdmin(tipo) {
+  const input = document.getElementById(inputIdCatalogo(tipo));
+  const nome = input.value.trim();
+  if (!nome) return;
+
+  if (estaNoCatalogo(tipo, nome)) {
+    exibirToast('Esse item já está no catálogo', 'erro');
+    return;
+  }
+
+  adicionarNoCatalogoLocal(tipo, nome);
+  await persistirItemCatalogo(tipo, nome);
+
+  input.value = '';
+  renderizarListaCatalogoAdmin(tipo);
+  atualizarCombos();
+}
+
+function removerItemCatalogo(tipo, indice) {
+  const valor = obterCatalogo(tipo)[indice];
+  if (!valor) return;
+
+  abrirModalConfirmar(`⚠️ Remover "${valor}" do catálogo? OS já cadastradas não são afetadas.`, async () => {
+    try {
+      const { error } = await supabase
+        .from(TABELA_CATALOGOS)
+        .delete()
+        .eq('tipo', tipo)
+        .ilike('valor', valor);
+
+      if (error) throw error;
+
+      const itens = obterCatalogo(tipo);
+      const idx = itens.findIndex(i => i.toLowerCase() === valor.toLowerCase());
+      if (idx >= 0) itens.splice(idx, 1);
+
+      renderizarListaCatalogoAdmin(tipo);
+      atualizarCombos();
+      exibirToast('✅ Item removido do catálogo!');
+    } catch (err) {
+      console.error('❌ Erro ao remover item de catálogo:', err);
+      exibirToast('Erro ao remover item', 'erro');
+    }
+  });
 }
 
 // ========== SEÇÃO USUÁRIOS ==========
@@ -1284,3 +1560,8 @@ window.executarAcaoConfirmada = executarAcaoConfirmada;
 window.mascararTelefone = mascararTelefone;
 window.mascararCEP = mascararCEP;
 window.mascararMoeda = mascararMoeda;
+window.renderizarRelatorios = renderizarRelatorios;
+window.limparFiltroRelatorio = limparFiltroRelatorio;
+window.salvarConfigEmpresa = salvarConfigEmpresa;
+window.adicionarItemAdmin = adicionarItemAdmin;
+window.removerItemCatalogo = removerItemCatalogo;

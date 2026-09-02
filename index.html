@@ -268,24 +268,128 @@
       </div>
     </section>
 
-    <!-- ========== SEÇÃO: RELATÓRIOS (em construção) ========== -->
+    <!-- ========== SEÇÃO: RELATÓRIOS ========== -->
     <section id="secaoRelatorios" class="secao-conteudo" style="display: none;">
       <div class="card">
-        <div class="card-body secao-em-construcao">
-          <div class="secao-em-construcao-icone">📊</div>
-          <h2>Relatórios</h2>
-          <p>Em construção — em breve: faturamento por período, produtividade por técnico e mais.</p>
+        <div class="card-header">
+          <h2>📊 Relatórios</h2>
+          <div class="filters-bar">
+            <label class="filtro-data-label">De <input type="date" id="relFiltroInicio" onchange="renderizarRelatorios()"></label>
+            <label class="filtro-data-label">Até <input type="date" id="relFiltroFim" onchange="renderizarRelatorios()"></label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="limparFiltroRelatorio()" title="Limpar filtro de período">✕ Limpar período</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-card teal">
+              <div class="label">Faturamento no período</div>
+              <div class="number" id="relFaturamentoTotal">R$ 0</div>
+            </div>
+            <div class="stat-card blue">
+              <div class="label">OS no período</div>
+              <div class="number" id="relTotalOS">0</div>
+            </div>
+            <div class="stat-card green">
+              <div class="label">Atendidas</div>
+              <div class="number" id="relAtendidas">0</div>
+            </div>
+            <div class="stat-card orange">
+              <div class="label">Pendentes</div>
+              <div class="number" id="relPendentes">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Faturamento por status</h2></div>
+        <div class="card-body">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Status</th><th>Qtd. OS</th><th>Faturamento</th></tr></thead>
+              <tbody id="tbodyRelatorioStatus"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Faturamento por campanha</h2></div>
+        <div class="card-body">
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Campanha</th><th>Qtd. OS</th><th>Faturamento</th></tr></thead>
+              <tbody id="tbodyRelatorioCampanha"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ========== SEÇÃO: ADMINISTRAÇÃO (em construção) ========== -->
+    <!-- ========== SEÇÃO: ADMINISTRAÇÃO ========== -->
     <section id="secaoAdmin" class="secao-conteudo" style="display: none;">
       <div class="card">
-        <div class="card-body secao-em-construcao">
-          <div class="secao-em-construcao-icone">⚙️</div>
-          <h2>Administração</h2>
-          <p>Em construção — em breve: dados da empresa, catálogos e permissões.</p>
+        <div class="card-header"><h2>🏢 Dados da Empresa</h2></div>
+        <div class="card-body">
+          <form onsubmit="event.preventDefault(); salvarConfigEmpresa();">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nome da empresa</label>
+                <input type="text" id="cfgNomeEmpresa" maxlength="40" placeholder="FETEC">
+              </div>
+              <div class="form-group">
+                <label>Subtítulo</label>
+                <input type="text" id="cfgSubtitulo" maxlength="40" placeholder="Assistência Técnica">
+              </div>
+              <div class="form-group">
+                <label>Telefone de contato</label>
+                <input type="tel" id="cfgTelefone" inputmode="numeric" placeholder="(00) 0000-0000" oninput="this.value = mascararTelefone(this.value)">
+              </div>
+              <div class="form-group">
+                <label>WhatsApp de contato</label>
+                <input type="tel" id="cfgWhatsapp" inputmode="numeric" placeholder="(00) 00000-0000" oninput="this.value = mascararTelefone(this.value)">
+              </div>
+              <div class="form-group full-width">
+                <label>Endereço</label>
+                <input type="text" id="cfgEndereco" placeholder="Rua, número, bairro, cidade">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>🗂️ Catálogos</h2></div>
+        <div class="card-body">
+          <div class="catalogos-grid">
+            <div class="catalogo-coluna">
+              <h3>🔧 Aparelhos</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoAparelho" placeholder="Novo aparelho...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('aparelho')" title="Adicionar aparelho">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoAparelho"></ul>
+            </div>
+            <div class="catalogo-coluna">
+              <h3>🏷️ Marcas</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoMarca" placeholder="Nova marca...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('marca')" title="Adicionar marca">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoMarca"></ul>
+            </div>
+            <div class="catalogo-coluna">
+              <h3>📢 Campanhas</h3>
+              <div class="catalogo-add">
+                <input type="text" id="catNovoCampanha" placeholder="Nova campanha...">
+                <button type="button" class="btn-add" onclick="adicionarItemAdmin('campanha')" title="Adicionar campanha">+</button>
+              </div>
+              <ul class="catalogo-lista" id="listaCatalogoCampanha"></ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>
