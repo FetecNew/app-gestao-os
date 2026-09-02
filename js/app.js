@@ -1,6 +1,6 @@
 // 🎯 APLICAÇÃO PRINCIPAL - Gestão de OS (VERSÃO 2 ATUALIZADA)
 
-import supabase, { TABELA_ORDENS_SERVICO, TABELA_TECNICO_PADRAO } from './supabase.js';
+import supabase, { TABELA_ORDENS_SERVICO, TABELA_ORDENS_SERVICO_LEITURA, TABELA_TECNICO_PADRAO } from './supabase.js';
 import {
   formatarData,
   formatarMoeda,
@@ -456,8 +456,10 @@ async function carregarOS() {
   try {
     console.log('📊 Carregando Ordens de Serviço...');
     
+    // Lê pela view de leitura: valor_servico/valor_pecas vêm mascarados (null) para
+    // quem não é administrador — mascaramento feito no banco, não só na UI.
     const { data, error } = await supabase
-      .from(TABELA_ORDENS_SERVICO)
+      .from(TABELA_ORDENS_SERVICO_LEITURA)
       .select('*')
       .order('id', { ascending: false });
     

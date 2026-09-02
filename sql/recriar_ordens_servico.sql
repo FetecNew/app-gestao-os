@@ -3,6 +3,11 @@
 -- Reconstruído a partir do uso real no código (js/app.js, js/utils.js),
 -- já que o schema nunca foi versionado em SQL.
 -- Rode este script no Supabase Dashboard > SQL Editor.
+--
+-- Este arquivo documenta o schema "de produção" (tabelas sem prefixo).
+-- Em ambiente local (localhost/127.0.0.1), o app usa as mesmas tabelas
+-- com prefixo "teste_" (teste_ordens_servico / teste_tecnico_padrao),
+-- no mesmo projeto Supabase — ver js/supabase.js.
 -- ============================================================
 
 -- ========== TABELA: ordens_servico ==========
@@ -37,9 +42,10 @@ create table if not exists public.tecnico_padrao (
 );
 
 -- ========== RLS (Row Level Security) ==========
--- O app usa login anônimo (supabase.auth.signInAnonymously()), então as
--- políticas liberam acesso total para qualquer usuário autenticado
--- (inclusive sessões anônimas), sem distinção de dono do registro.
+-- O app usa login real (e-mail/senha via supabase.auth.signInWithPassword),
+-- então as políticas liberam acesso à visibilidade das LINHAS para qualquer
+-- usuário autenticado, sem distinção de dono do registro. A distinção por
+-- perfil (admin | tecnico) é feita à parte, ver seção seguinte.
 
 alter table public.ordens_servico enable row level security;
 alter table public.tecnico_padrao enable row level security;
@@ -59,8 +65,95 @@ create policy "tecnico_padrao_acesso_autenticado"
   with check (true);
 
 -- ============================================================
--- IMPORTANTE: além de rodar este script, confirme que o login anônimo
--- está habilitado em Authentication > Providers > Anonymous Sign-Ins.
--- Sem isso, supabase.auth.signInAnonymously() falha e nada funciona,
--- mesmo com o schema e as policies corretos.
+-- CONTROLE DE ACESSO POR PERFIL (admin | tecnico)
+--
+-- O perfil de cada usuário fica em user_metadata (auth.users.raw_user_meta_data
+-- ->> 'perfil'), definido na criação/edição de usuário (Edge Functions
+-- criar-usuario / editar-usuario).
+--
+-- RLS filtra LINHAS, não colunas — então para impedir que um usuário com
+-- perfil "tecnico" leia ou escreva valor_servico/valor_pecas via chamada
+-- direta à API (não só pela UI), usamos três mecanismos combinados:
+--
+--   1) Função helper que lê o perfil do JWT da requisição.
+--   2) Revoke de SELECT da tabela base para "authenticated" + grant coluna a
+--      coluna, sem incluir valor_servico/valor_pecas — bloqueia leitura
+--      direta dessas colunas na tabela base, para qualquer papel.
+--   3) Uma view "*_leitura" (dona por um role com privilégio total) que
+--      expõe os valores mascarados (null) para quem não é admin. O app
+--      deve fazer SELECT nessa view (TABELA_ORDENS_SERVICO_LEITURA em
+--      js/supabase.js); INSERT/UPDATE/DELETE continuam na tabela base.
+--   4) Trigger BEFORE INSERT/UPDATE na tabela base que ignora qualquer
+--      valor de valor_servico/valor_pecas enviado por quem não é admin
+--      (mantém o valor antigo no UPDATE, força 0 no INSERT).
+--
+-- IMPORTANTE: aplicado até agora somente nas tabelas de TESTE
+-- (teste_ordens_servico / teste_ordens_servico_leitura), para não quebrar
+-- o front-end de produção — que ainda lê diretamente da tabela base.
+-- Ao mesclar a branch `dev` em `main`, repita os blocos 2, 3 e 4 abaixo
+-- trocando "teste_ordens_servico" por "ordens_servico".
+-- ============================================================
+
+-- 1) Helper: le o perfil (admin | tecnico) do JWT do usuario autenticado.
+--    Valor ausente/desconhecido cai em 'tecnico' (nega por padrao).
+create or replace function public.perfil_atual()
+returns text
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(auth.jwt() -> 'user_metadata' ->> 'perfil', 'tecnico');
+$$;
+
+-- Exemplo para as tabelas de TESTE (repetir para "ordens_servico" no merge):
+
+-- 2) Bloqueia leitura direta das colunas de valor na tabela base.
+revoke select on public.teste_ordens_servico from authenticated;
+grant select (
+  id, numero_os, data_abertura, cliente, telefone, endereco, complemento, cep,
+  aparelho, marca, periodo_visita, campanha, status, observacoes, created_at, atendido
+) on public.teste_ordens_servico to authenticated;
+
+-- 3) View de leitura com os valores mascarados para quem não é admin.
+create or replace view public.teste_ordens_servico_leitura as
+select
+  id, numero_os, data_abertura, cliente, telefone, endereco, complemento, cep,
+  aparelho, marca,
+  case when public.perfil_atual() = 'admin' then valor_servico else null end as valor_servico,
+  case when public.perfil_atual() = 'admin' then valor_pecas else null end as valor_pecas,
+  periodo_visita, campanha, status, observacoes, created_at, atendido
+from public.teste_ordens_servico;
+
+grant select on public.teste_ordens_servico_leitura to authenticated;
+
+-- 4) Trigger de escrita: ignora valor_servico/valor_pecas enviados por quem não é admin.
+create or replace function public.protege_valores_os()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if public.perfil_atual() <> 'admin' then
+    if TG_OP = 'UPDATE' then
+      NEW.valor_servico := OLD.valor_servico;
+      NEW.valor_pecas := OLD.valor_pecas;
+    elsif TG_OP = 'INSERT' then
+      NEW.valor_servico := 0;
+      NEW.valor_pecas := 0;
+    end if;
+  end if;
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trg_protege_valores_os on public.teste_ordens_servico;
+create trigger trg_protege_valores_os
+before insert or update on public.teste_ordens_servico
+for each row execute function public.protege_valores_os();
+
+-- NOTA (advisor de segurança do Supabase): a view "*_leitura" aparece como
+-- "Security Definer View". Isso é intencional — é o que permite a view ler
+-- as colunas reais (bypassando o revoke do passo 2) para então mascará-las
+-- explicitamente pelo perfil. Sem isso o mascaramento não seria possível
+-- com uma única tabela/view.
 -- ============================================================

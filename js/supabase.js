@@ -16,6 +16,12 @@ const PREFIXO_TABELA = AMBIENTE_LOCAL ? 'teste_' : '';
 export const TABELA_ORDENS_SERVICO = `${PREFIXO_TABELA}ordens_servico`;
 export const TABELA_TECNICO_PADRAO = `${PREFIXO_TABELA}tecnico_padrao`;
 
+// View de LEITURA das OS: mascara (null) valor_servico/valor_pecas para quem não é
+// administrador — a proteção é feita no banco (view + revoke de coluna + trigger),
+// não apenas na UI. Usar esta constante para SELECT; INSERT/UPDATE/DELETE continuam
+// em TABELA_ORDENS_SERVICO.
+export const TABELA_ORDENS_SERVICO_LEITURA = `${PREFIXO_TABELA}ordens_servico_leitura`;
+
 if (AMBIENTE_LOCAL) {
   console.log(`🧪 Ambiente local — usando tabelas de teste: ${TABELA_ORDENS_SERVICO}, ${TABELA_TECNICO_PADRAO}`);
 }
