@@ -204,10 +204,12 @@ insert into public.teste_catalogos (tipo, valor) values
 on conflict do nothing;
 
 -- Config de 1 linha só (id fixo = 1), editável só por admin, lida por todos.
+-- logo_url: opcional — quando vazio, o app usa a engrenagem SVG padrão.
 create table if not exists public.teste_config_empresa (
   id smallint primary key default 1,
   nome_empresa text not null default 'FETEC',
   subtitulo text not null default 'Assistência Técnica',
+  logo_url text,
   telefone_contato text,
   whatsapp_contato text,
   endereco text,

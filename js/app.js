@@ -48,6 +48,7 @@ let catalogoCampanhas = [];
 let configEmpresa = {
   nome_empresa: 'FETEC',
   subtitulo: 'Assistência Técnica',
+  logo_url: '',
   telefone_contato: '',
   whatsapp_contato: '',
   endereco: ''
@@ -548,24 +549,52 @@ async function carregarConfigEmpresa() {
   }
 }
 
-// Aplica nome/subtítulo configurados no título da página e no texto da logo,
-// mantendo "FETEC" / "Assistência Técnica" como visual padrão se vazio.
+// Aplica nome/subtítulo/logo configurados no título da página e no header,
+// mantendo a engrenagem "FETEC" como visual padrão se nada for configurado.
 function aplicarConfigEmpresaNaUI() {
   const nome = configEmpresa.nome_empresa || 'FETEC';
   const subtitulo = configEmpresa.subtitulo || 'Assistência Técnica';
 
   document.title = `Gestão de OS ${nome} - ${subtitulo}`;
 
-  const textoLogo = document.querySelector('.logo-fetec .fetec-text');
-  const textoSubtitulo = document.querySelector('.logo-fetec .fetec-subtitle');
+  const textoLogo = document.querySelector('#logoEmpresaPadrao .fetec-text');
+  const textoSubtitulo = document.querySelector('#logoEmpresaPadrao .fetec-subtitle');
   if (textoLogo) textoLogo.textContent = nome;
   if (textoSubtitulo) textoSubtitulo.textContent = subtitulo.toUpperCase();
+
+  // Se houver uma logo customizada (URL), ela substitui a engrenagem padrão.
+  // Usa style.display com valor explícito ('block'/'none') em vez da
+  // propriedade "hidden": o atributo "hidden" tem UA-stylesheet baixa
+  // prioridade, então uma vez presente no HTML ele só é revertido
+  // removendo o atributo (ou com display explícito), e <svg> nem sempre
+  // reflete a propriedade "hidden" de forma confiável.
+  const logoCustom = document.getElementById('logoEmpresaCustom');
+  const logoPadrao = document.getElementById('logoEmpresaPadrao');
+
+  function mostrarLogoCustomizada(mostrar) {
+    logoCustom.removeAttribute('hidden');
+    logoPadrao.removeAttribute('hidden');
+    logoCustom.style.display = mostrar ? 'block' : 'none';
+    logoPadrao.style.display = mostrar ? 'none' : 'block';
+  }
+
+  if (configEmpresa.logo_url) {
+    // Se a URL falhar ao carregar, volta para a engrenagem padrão em vez de
+    // mostrar um ícone de imagem quebrada no header.
+    logoCustom.onerror = () => mostrarLogoCustomizada(false);
+    logoCustom.src = configEmpresa.logo_url;
+    mostrarLogoCustomizada(true);
+  } else {
+    logoCustom.removeAttribute('src');
+    mostrarLogoCustomizada(false);
+  }
 }
 
 async function salvarConfigEmpresa() {
   const dados = {
     nome_empresa: document.getElementById('cfgNomeEmpresa').value.trim() || 'FETEC',
     subtitulo: document.getElementById('cfgSubtitulo').value.trim() || 'Assistência Técnica',
+    logo_url: document.getElementById('cfgLogoUrl').value.trim(),
     telefone_contato: document.getElementById('cfgTelefone').value.trim(),
     whatsapp_contato: document.getElementById('cfgWhatsapp').value.trim(),
     endereco: document.getElementById('cfgEndereco').value.trim()
@@ -1071,6 +1100,7 @@ function inputIdCatalogo(tipo) {
 function renderizarAdmin() {
   document.getElementById('cfgNomeEmpresa').value = configEmpresa.nome_empresa || '';
   document.getElementById('cfgSubtitulo').value = configEmpresa.subtitulo || '';
+  document.getElementById('cfgLogoUrl').value = configEmpresa.logo_url || '';
   document.getElementById('cfgTelefone').value = mascararTelefone(configEmpresa.telefone_contato || '');
   document.getElementById('cfgWhatsapp').value = mascararTelefone(configEmpresa.whatsapp_contato || '');
   document.getElementById('cfgEndereco').value = configEmpresa.endereco || '';
